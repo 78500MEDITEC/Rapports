@@ -1,0 +1,21 @@
+{
+  "name": "Meditec — Rapports de visite",
+  "short_name": "Meditec Rapports",
+  "description": "Rapports de visite PSDM — MAD, Handicap, Collectivités",
+  "start_url": "/rapports/",
+  "scope": "/rapports/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F1923",
+  "theme_color": "#1B3A6B",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nouveau rapport MAD", "short_name": "MAD", "url": "/rapports/?new=mad", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Nouveau rapport FRM", "short_name": "FRM", "url": "/rapports/?new=handi", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ],
+  "categories": ["medical", "productivity", "business"]
+}

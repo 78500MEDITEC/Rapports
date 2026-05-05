@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meditec Rapports">
+<link rel="manifest" href="manifest.json">
+<title>Meditec — Rapports de visite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1B3A6B;--blue:#1A56DB;--blue-l:#EBF2FF;--blue-d:#1240A0;
+  --teal:#0E7C7B;--teal-l:#D1F2EB;
+  --green:#1A7F4B;--green-l:#D5F5E3;
+  --red:#C0392B;--red-l:#FDECEA;
+  --orange:#BA4A00;--orange-l:#FDEBD0;
+  --purple:#5B3FA0;--purple-l:#EDE7F6;
+  --ink:#0F1923;--ink2:#3A4A5C;--ink3:#6B7A8D;
+  --paper:#F5F7FA;--white:#FFFFFF;
+  --border:#DDE3EC;--border2:#BFC9D9;
+  --nav-h:52px;
+}
+html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;color:var(--ink);background:var(--paper)}
+input,select,textarea,button{font-family:inherit;font-size:15px}
+
+/* NAV */
+.nav{height:var(--nav-h);background:var(--navy);display:flex;align-items:center;padding:0 1rem;gap:.75rem;flex-shrink:0;position:sticky;top:0;z-index:100}
+.nav-logo{color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;flex:1;white-space:nowrap}
+.nav-badge{background:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.nav-btn{width:38px;height:38px;border:none;background:rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-btn:active{background:rgba(255,255,255,.3)}
+.offline-tag{background:#C0392B;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;display:none}
+.offline-tag.on{display:block}
+
+/* LAYOUT */
+.app{display:flex;flex-direction:column;height:calc(100vh - var(--nav-h));overflow:hidden}
+.view{display:none;flex-direction:column;height:100%}.view.active{display:flex}
+
+/* LIST */
+.list-top{background:#fff;border-bottom:1px solid var(--border);padding:.75rem 1rem;flex-shrink:0}
+.list-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.list-title{font-size:17px;font-weight:700}
+.filter-row{display:flex;gap:.375rem;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filter-row::-webkit-scrollbar{display:none}
+.list-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.75rem 1rem 5rem}
+.fab{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));right:16px;width:56px;height:56px;background:var(--blue);border-radius:50%;border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.4);z-index:50;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.93)}
+
+/* CARDS */
+.rcard{background:#fff;border-radius:12px;border:1px solid var(--border);padding:.875rem 1rem;margin-bottom:.625rem;display:flex;gap:.75rem;cursor:pointer;position:relative}
+.rcard:active{border-color:var(--blue);background:var(--blue-l)}
+.rcard-ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.rcard-body{flex:1;min-width:0}
+.rcard-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard-meta{font-size:12px;color:var(--ink3);margin-top:3px;display:flex;flex-wrap:wrap;gap:.375rem;align-items:center}
+.badge{padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.b-mad{background:#EBF2FF;color:#1240A0}
+.b-handi{background:#EDE7F6;color:#4A2E8A}
+.b-coll{background:#D1F2EB;color:#0A5F5F}
+.b-nat{background:var(--paper);color:var(--ink3);border:1px solid var(--border)}
+.rcard-del{position:absolute;top:.75rem;right:.75rem;border:none;background:transparent;color:var(--ink3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:5px}
+.rcard-del:active{background:var(--red-l);color:var(--red)}
+.empty{text-align:center;padding:4rem 2rem;color:var(--ink3)}
+.empty-ico{font-size:52px;margin-bottom:.75rem}
+
+/* CHIPS */
+.chip{padding:7px 13px;border-radius:20px;font-size:13px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;user-select:none;transition:all .15s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.chip:active{transform:scale(.96)}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+.chip.sm{padding:5px 10px;font-size:12px}
+
+/* FORM VIEW */
+.form-bar{background:#fff;border-bottom:1px solid var(--border);flex-shrink:0}
+.form-bar-top{display:flex;align-items:center;gap:.75rem;padding:.625rem 1rem}
+.back{width:36px;height:36px;border:none;background:transparent;color:var(--blue);font-size:22px;cursor:pointer;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.back:active{background:var(--blue-l)}
+.form-title{flex:1;min-width:0}
+.form-type{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3)}
+.form-num{font-size:13px;font-weight:700;font-family:monospace}
+.save-btn{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0}
+.save-btn:active{background:var(--blue-d)}
+
+/* TABS */
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 .75rem;border-bottom:2px solid var(--border)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 14px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink3);flex-shrink:0}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* FORM SCROLL */
+.fscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem 1rem 2rem}
+.fsec{display:none}.fsec.on{display:block}
+
+/* SECTION TITLE */
+.sec-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);padding:.875rem 0 .625rem;display:flex;align-items:center;gap:.5rem}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-sub{font-size:12px;font-weight:700;color:var(--ink2);margin:.625rem 0 .375rem}
+
+/* FIELDS */
+.f{margin-bottom:.75rem}
+.f label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:11px 12px;font-size:15px;color:var(--ink);background:#fff;outline:none;-webkit-appearance:none;transition:border-color .15s}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.09)}
+.f textarea{min-height:75px;resize:none;line-height:1.5}
+.f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7A8D' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.f input[readonly]{background:var(--paper);color:var(--ink3)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.625rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+
+/* CHIP GROUPS */
+.chips{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.25rem}
+
+/* RADIO PILLS */
+.rpills{display:flex;flex-wrap:wrap;gap:.375rem}
+.rpill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:13px;font-weight:500;user-select:none}
+.rpill:active{transform:scale(.96)}
+.rpill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* YES/NO */
+.yn{display:flex;gap:.5rem}
+.yn-btn{flex:1;padding:10px;border:1.5px solid var(--border2);border-radius:8px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:center}
+.yn-btn.on.yes{border-color:var(--green);background:var(--green-l);color:var(--green)}
+.yn-btn.on.no{border-color:var(--red);background:var(--red-l);color:var(--red)}
+
+/* MESURES */
+.mbox{background:#fff;border:1.5px solid var(--border2);border-radius:8px;padding:.5rem;text-align:center}
+.mlbl{font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+.minp{width:100%;border:none;border-bottom:1.5px solid var(--border2);background:transparent;font-size:16px;font-weight:700;color:var(--blue-d);text-align:center;padding:2px;outline:none;font-family:monospace}
+.minp:focus{border-bottom-color:var(--blue)}
+.munit{font-size:10px;color:var(--ink3);margin-top:2px}
+
+/* STARS */
+.eval-row{display:flex;align-items:center;gap:.5rem;padding:.625rem 0;border-bottom:1px solid var(--border)}
+.eval-row:last-child{border-bottom:none}
+.eval-lbl{flex:1;font-size:13px;line-height:1.3}
+.stars{display:flex;gap:3px}
+.star{width:30px;height:30px;border:1.5px solid var(--border2);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff;color:#ccc}
+.star.on{background:var(--orange);border-color:var(--orange);color:#fff}
+
+/* SIGNATURE */
+.sig-box{border:2px dashed var(--border2);border-radius:10px;background:#FAFBFC;overflow:hidden;position:relative;touch-action:none;cursor:pointer}
+.sig-box canvas{display:block;width:100%;height:100px}
+.sig-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;gap:3px}
+.sig-ph span{font-size:26px}
+.sig-ph p{font-size:12px;color:var(--ink3)}
+.sig-box.signed .sig-ph{opacity:0}
+.sig-clr{position:absolute;top:6px;right:6px;background:#fff;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;z-index:5}
+
+/* NOTICE */
+.notice{padding:.75rem 1rem;border-radius:8px;font-size:13px;margin:.5rem 0;display:flex;gap:.5rem;align-items:flex-start}
+.n-info{background:var(--blue-l);color:var(--blue-d)}
+.n-ok{background:var(--green-l);color:var(--green)}
+.n-warn{background:var(--orange-l);color:var(--orange)}
+
+/* BOTTOM BAR */
+.fbar{background:#fff;border-top:1px solid var(--border);padding:.75rem 1rem;padding-bottom:calc(.75rem + env(safe-area-inset-bottom));display:flex;gap:.5rem;flex-shrink:0}
+.fbar .fbtn{flex:1;padding:13px;font-size:14px;font-weight:600;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.375rem}
+.fb-save{background:var(--blue);color:#fff}
+.fb-save:active{background:var(--blue-d)}
+.fb-pdf{background:var(--paper);color:var(--ink);border:1.5px solid var(--border2)!important}
+.fb-mail{background:var(--teal);color:#fff}
+
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end}
+.mbg.on{display:flex}
+.msheet{background:#fff;border-radius:16px 16px 0 0;width:100%;max-height:95vh;overflow-y:auto;padding:0 1.25rem calc(1.25rem + env(safe-area-inset-bottom))}
+.mhandle{width:40px;height:4px;border-radius:2px;background:var(--border2);margin:.75rem auto 1rem}
+.mtitle{font-size:17px;font-weight:700;margin-bottom:1.25rem}
+.mbtns{display:flex;gap:.5rem;margin-top:1.25rem}
+.mbtns button{flex:1;padding:13px;font-size:14px;font-weight:600;border:none;border-radius:9px;cursor:pointer}
+.mbtn-cancel{background:var(--paper);color:var(--ink)}
+.mbtn-ok{background:var(--blue);color:#fff}
+
+/* INSTALL */
+.ibanner{background:var(--blue);color:#fff;padding:.75rem 1rem;display:none;align-items:center;gap:.625rem;flex-shrink:0}
+.ibanner.on{display:flex}
+.ibanner-txt{flex:1;font-size:13px;line-height:1.4}
+.ibanner-btn{background:#fff;color:var(--blue);border:none;border-radius:7px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer}
+.ibanner-x{background:transparent;border:none;color:rgba(255,255,255,.7);font-size:20px;cursor:pointer}
+
+/* PDF/PRINT */
+@media print{
+  .nav,.form-bar,.fbar,.tabs,.fab,.mbg,.ibanner,.no-print{display:none!important}
+  .view,.fsec{display:block!important}
+  .fscroll{overflow:visible;height:auto}
+  body,html{overflow:visible;height:auto;font-size:12px}
+  .f input,.f select,.f textarea{border:1px solid #ccc;padding:5px 7px;font-size:11px}
+  .chip.on,.rpill.on{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .print-header{display:flex!important}
+  .sec-title{page-break-before:auto}
+  .fsec{page-break-inside:avoid}
+}
+.print-header{display:none;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:2px solid var(--navy);margin-bottom:.5rem}
+.ph-logo{font-size:16px;font-weight:700;color:var(--navy)}
+.ph-info{text-align:right;font-size:12px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="5" fill="#1A56DB"/><path d="M6 11h10M11 6v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+    Meditec <span class="nav-badge">Rapports</span>
+    <span class="offline-tag" id="otag">⚡ Hors ligne</span>
+  </div>
+  <button class="nav-btn" onclick="showV('list')">☰</button>
+  <button class="nav-btn" onclick="openNewModal()">＋</button>
+</div>
+
+<div class="ibanner" id="iban">
+  <div class="ibanner-txt">📲 Installer l'app sur l'écran d'accueil</div>
+  <button class="ibanner-btn" onclick="installPWA()">Installer</button>
+  <button class="ibanner-x" onclick="this.closest('.ibanner').classList.remove('on')">×</button>
+</div>
+
+<div class="app">
+
+<!-- LIST VIEW -->
+<div class="view active" id="view-list">
+  <div class="list-top">
+    <div class="list-top-row">
+      <div class="list-title">Mes rapports</div>
+      <span style="font-size:12px;color:var(--ink3)" id="rcount"></span>
+    </div>
+    <div class="filter-row" id="filter-row">
+      <div class="chip sm on" onclick="setFilter('all',this)">Tous</div>
+      <div class="chip sm" onclick="setFilter('handi',this)">♿ Handicap</div>
+      <div class="chip sm" onclick="setFilter('mad',this)">🏠 MAD</div>
+      <div class="chip sm" onclick="setFilter('collectivite',this)">🏢 Collectivité</div>
+    </div>
+  </div>
+  <div class="list-body" id="list-body"></div>
+  <button class="fab no-print" onclick="openNewModal()">＋</button>
+</div>
+
+<!-- FORM VIEW -->
+<div class="view" id="view-form">
+  <div class="form-bar">
+    <div class="print-header" id="ph">
+      <div><div class="ph-logo">MEDITEC PSDM</div><div style="font-size:12px;color:var(--ink3)">Rapport de visite</div></div>
+      <div class="ph-info" id="ph-info"></div>
+    </div>
+    <div class="form-bar-top no-print">
+      <button class="back" onclick="goBack()">‹</button>
+      <div class="form-title">
+        <div class="form-type" id="ft-type"></div>
+        <div class="form-num" id="ft-num"></div>
+      </div>
+      <button class="save-btn" onclick="doSave(this)">💾 Sauver</button>
+    </div>
+    <div class="tabs no-print" id="tabs"></div>
+  </div>
+  <div class="fscroll" id="fscroll"></div>
+  <div class="fbar no-print">
+    <button class="fbtn fb-pdf" onclick="window.print()">🖨️ PDF</button>
+    <button class="fbtn fb-save" onclick="doSave(this)">💾 Sauvegarder</button>
+    <button class="fbtn fb-mail" onclick="openMailModal()">📧 Envoyer</button>
+  </div>
+</div>
+
+</div><!-- /.app -->
+
+<!-- MODAL NOUVEAU -->
+<div class="mbg" id="m-new">
+<div class="msheet">
+  <div class="mhandle"></div>
+  <div class="mtitle">Nouveau rapport</div>
+
+  <div class="sec-sub">Type de visite</div>
+  <div class="rpills" id="m-types">
+    <div class="rpill on" data-v="handi" onclick="mSel(this,'m-types')">♿ Handicap FRM</div>
+    <div class="rpill" data-v="mad" onclick="mSel(this,'m-types')">🏠 MAD</div>
+    <div class="rpill" data-v="collectivite" onclick="mSel(this,'m-types')">🏢 Collectivité</div>
+  </div>
+
+  <div class="sec-sub" style="margin-top:.75rem">Nature du rapport</div>
+  <div class="rpills" id="m-natures">
+    <div class="rpill on" data-v="eval" onclick="mSel(this,'m-natures')">📝 Évaluation</div>
+    <div class="rpill" data-v="visite" onclick="mSel(this,'m-natures')">🔍 Visite / Essai</div>
+    <div class="rpill" data-v="livraison" onclick="mSel(this,'m-natures')">📦 Livraison</div>
+  </div>
+
+  <div class="g2" style="margin-top:.875rem">
+    <div class="f"><label>Technicien</label><input id="m-tech" placeholder="Prénom Nom"></div>
+    <div class="f"><label>Date</label><input id="m-date" type="date"></div>
+  </div>
+  <div class="f" id="m-pat-f"><label>Patient / Bénéficiaire</label><input id="m-pat" placeholder="NOM Prénom"></div>
+  <div class="f" id="m-etab-f" style="display:none"><label>Établissement</label><input id="m-etab" placeholder="Nom établissement"></div>
+
+  <div class="mbtns">
+    <button class="mbtn-cancel" onclick="closeM('m-new')">Annuler</button>
+    <button class="mbtn-ok" onclick="createFromModal()">Créer le rapport →</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL MAIL -->
+<div class="mbg" id="m-mail">
+<div class="msheet">
+  <div class="mhandle"></div>
+  <div class="mtitle">📧 Envoyer le rapport</div>
+  <div class="f"><label>Destinataire (médecin, prescripteur…)</label><input id="mail-to" type="email" inputmode="email" placeholder="medecin@cabinet.fr"></div>
+  <div class="f"><label>CC (optionnel)</label><input id="mail-cc" type="email" inputmode="email" placeholder="secretariat@…"></div>
+  <div class="f"><label>Message</label><textarea id="mail-msg" rows="3" placeholder="Bonjour, veuillez trouver ci-joint le rapport de visite…"></textarea></div>
+  <div class="notice n-info">💡 Votre application mail s'ouvrira avec le résumé du rapport. Pour un PDF : utilisez 🖨️ PDF puis "Enregistrer en PDF".</div>
+  <div class="mbtns">
+    <button class="mbtn-cancel" onclick="closeM('m-mail')">Annuler</button>
+    <button class="mbtn-ok" onclick="doMail()">Ouvrir Mail →</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let reports=[], cid=null, cfilter='all', deferredInstall=null;
+const SKEY='md_rv4';
+try{reports=JSON.parse(localStorage.getItem(SKEY)||'[]');}catch(e){}
+function persist(){try{localStorage.setItem(SKEY,JSON.stringify(reports));}catch(e){}}
+function today(){return new Date().toISOString().split('T')[0];}
+function fdate(s){return s?new Date(s+'T12:00').toLocaleDateString('fr-FR'):'—';}
+function genNum(t){const p={handi:'FRM',mad:'MAD',collectivite:'COL'}[t]||'RPT';const d=new Date();return `${p}-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(reports.length+1).padStart(3,'0')}`;}
+
+// ═══════════════════════════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════════════════════════
+function showV(n){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+n).classList.add('active');}
+function goBack(){saveReport();showV('list');renderList();}
+
+// ═══════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+function mSel(el,grp){document.querySelectorAll(`#${grp} .rpill`).forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function openNewModal(){
+  document.getElementById('m-date').value=today();
+  document.getElementById('m-pat').value='';
+  document.getElementById('m-etab').value='';
+  const lastTech=reports.length?reports[0].tech||'':'';
+  document.getElementById('m-tech').value=lastTech;
+  // reset selectors
+  document.querySelectorAll('#m-types .rpill').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.querySelectorAll('#m-natures .rpill').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.getElementById('m-pat-f').style.display='block';
+  document.getElementById('m-etab-f').style.display='none';
+  // watch type change
+  document.querySelectorAll('#m-types .rpill').forEach(b=>b.addEventListener('click',()=>{
+    const isColl=b.dataset.v==='collectivite';
+    document.getElementById('m-pat-f').style.display=isColl?'none':'block';
+    document.getElementById('m-etab-f').style.display=isColl?'block':'none';
+  }));
+  openM('m-new');
+}
+function createFromModal(){
+  const type=document.querySelector('#m-types .on')?.dataset.v||'handi';
+  const nature=document.querySelector('#m-natures .on')?.dataset.v||'eval';
+  const tech=document.getElementById('m-tech').value.trim();
+  const date=document.getElementById('m-date').value||today();
+  const patient=document.getElementById('m-pat').value.trim();
+  const etab=document.getElementById('m-etab').value.trim();
+  closeM('m-new');
+  createReport(type,nature,tech,date,patient,etab);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CREATE
+// ═══════════════════════════════════════════════════════════════
+function createReport(type,nature,tech,date,patient,etab){
+  const r={id:Date.now(),type,nature,num:genNum(type),tech,date,patient,etab,data:{},_chips:{},_mats:[],_stars:{},createdAt:new Date().toISOString()};
+  reports.unshift(r);persist();cid=r.id;
+  renderForm(r);showV('form');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LIST
+// ═══════════════════════════════════════════════════════════════
+const TM={handi:{icon:'♿',label:'Handicap',bc:'b-handi',bg:'var(--purple-l)'},mad:{icon:'🏠',label:'MAD',bc:'b-mad',bg:'var(--blue-l)'},collectivite:{icon:'🏢',label:'Collectivité',bc:'b-coll',bg:'var(--teal-l)'}};
+const NL={eval:'Évaluation',visite:'Visite/Essai',livraison:'Livraison'};
+
+function setFilter(f,el){cfilter=f;document.querySelectorAll('#filter-row .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderList();}
+
+function renderList(){
+  const list=cfilter==='all'?reports:reports.filter(r=>r.type===cfilter);
+  document.getElementById('rcount').textContent=list.length+' rapport'+(list.length>1?'s':'');
+  const el=document.getElementById('list-body');
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:.25rem">Aucun rapport</p><p>Appuyez sur + pour commencer</p></div>`;return;}
+  el.innerHTML=list.map(r=>{
+    const m=TM[r.type]||TM.handi;
+    const name=r.patient||r.etab||'Nouveau rapport';
+    return `<div class="rcard" onclick="openR(${r.id})">
+      <div class="rcard-ico" style="background:${m.bg}">${m.icon}</div>
+      <div class="rcard-body">
+        <div class="rcard-name">${name}</div>
+        <div class="rcard-meta">
+          <span class="badge ${m.bc}">${m.label}</span>
+          <span class="badge b-nat">${NL[r.nature]||'—'}</span>
+          <span>${fdate(r.date)}</span>
+          <span style="font-family:monospace;font-size:10px">${r.num}</span>
+        </div>
+      </div>
+      <button class="rcard-del" onclick="delR(event,${r.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function openR(id){cid=id;const r=reports.find(x=>x.id===id);if(r){renderForm(r);showV('form');}}
+function delR(e,id){e.stopPropagation();if(!confirm('Supprimer ce rapport ?'))return;reports=reports.filter(x=>x.id!==id);persist();if(cid===id)cid=null;renderList();}
+
+// ═══════════════════════════════════════════════════════════════
+// FORM RENDER
+// ═══════════════════════════════════════════════════════════════
+const SECS={
+  handi:['Identification','Patient & Admin','Sécurité Sociale','Pathologie & Besoins','Environnement & Mesures','Matériel FRM','Essai matériel','Préconisation','Signatures'],
+  mad:  ['Identification','Patient & Admin','Sécurité Sociale','Pathologie & Besoins','Environnement','Vie quotidienne','Matériel MAD','Préconisation','Signatures'],
+  collectivite:['Identification','Établissement','Analyse commerciale','Besoins & Matériel','Préconisation','Signatures'],
+};
+
+function renderForm(r){
+  const tm=TM[r.type]||TM.handi;
+  document.getElementById('ft-type').textContent=`${tm.label} — ${NL[r.nature]||''}`;
+  document.getElementById('ft-num').textContent=r.num;
+  document.getElementById('ph-info').innerHTML=`<strong>${r.num}</strong><br>${fdate(r.date)}`;
+
+  const secs=SECS[r.type]||SECS.handi;
+  document.getElementById('tabs').innerHTML=secs.map((s,i)=>`<div class="tab ${i===0?'on':''}" onclick="switchTab(${i},this)">${s}</div>`).join('');
+  document.getElementById('fscroll').innerHTML=secs.map((s,i)=>`<div class="fsec ${i===0?'on':''}" id="fs-${i}">${buildSec(s,r)}</div>`).join('');
+
+  initChips(r);initSigs(r);restoreData(r);
+}
+
+function switchTab(i,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.fsec').forEach(s=>s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('fs-'+i).classList.add('on');
+  document.getElementById('fscroll').scrollTop=0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION BUILDERS
+// ═══════════════════════════════════════════════════════════════
+function buildSec(name,r){
+  const B={
+    'Identification':    secIdent,
+    'Patient & Admin':   secPatient,
+    'Sécurité Sociale':  secSS,
+    'Pathologie & Besoins': r.type==='handi'?secPathoHandi:secPathoMAD,
+    'Environnement & Mesures': secEnvHandi,
+    'Environnement':     secEnvMAD,
+    'Vie quotidienne':   secVieQuot,
+    'Matériel FRM':      secMatFRM,
+    'Matériel MAD':      secMatMAD,
+    'Essai matériel':    secEssai,
+    'Préconisation':     secPreco,
+    'Signatures':        secSig,
+    'Établissement':     secEtab,
+    'Analyse commerciale': secCommercial,
+    'Besoins & Matériel':secBesoinsColl,
+  };
+  return (B[name]||secEtab)(r);
+}
+
+// ── IDENTIFICATION ──────────────────────────────────────────────
+function secIdent(r){return `
+<div class="sec-title">Identification du rapport</div>
+<div class="g2">
+  <div class="f"><label>N° Rapport</label><input name="num" value="${r.num}" readonly></div>
+  <div class="f"><label>Date de visite</label><input name="date" type="date" value="${r.date}"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Technicien / Commercial</label><input name="tech" value="${r.tech||''}" placeholder="Prénom Nom"></div>
+  <div class="f"><label>Prescripteur</label><input name="prescripteur" placeholder="Dr. Nom — Spécialité"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>N° Ordonnance</label><input name="n_ordo" placeholder="" style="font-family:monospace"></div>
+  <div class="f"><label>Date ordonnance</label><input name="date_ordo" type="date"></div>
+</div>
+<div class="f"><label>Motif de la visite</label><textarea name="motif_visite" placeholder="Contexte, origine de la demande (médecin, MDPH, famille, HAD…)" rows="2"></textarea></div>`;}
+
+// ── PATIENT & ADMIN ─────────────────────────────────────────────
+function secPatient(r){return `
+<div class="sec-title">Informations administratives patient</div>
+<div class="g2">
+  <div class="f"><label>Nom</label><input name="nom" placeholder="NOM" autocomplete="family-name"></div>
+  <div class="f"><label>Prénom</label><input name="prenom" placeholder="Prénom" autocomplete="given-name"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Date de naissance</label><input name="ddn" type="date"></div>
+  <div class="f"><label>Lieu de naissance</label><input name="lieu_naissance" placeholder="Ville"></div>
+</div>
+<div class="f"><label>Adresse complète</label><input name="adresse" placeholder="N°, rue" autocomplete="street-address"></div>
+<div class="g2">
+  <div class="f"><label>Code postal</label><input name="cp" placeholder="00000" inputmode="numeric"></div>
+  <div class="f"><label>Ville</label><input name="ville" placeholder="Ville"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Téléphone domicile</label><input name="tel_dom" type="tel" placeholder="01 XX XX XX XX"></div>
+  <div class="f"><label>Téléphone mobile</label><input name="tel_mob" type="tel" placeholder="06 XX XX XX XX"></div>
+</div>
+<div class="f"><label>Email</label><input name="email" type="email" inputmode="email" placeholder="patient@mail.fr"></div>
+<div class="sec-sub" style="margin-top:.5rem">Contact / Aidant principal</div>
+<div class="g2">
+  <div class="f"><label>Nom & prénom</label><input name="aidant_nom" placeholder="Nom — Lien de parenté"></div>
+  <div class="f"><label>Téléphone</label><input name="aidant_tel" type="tel" placeholder="06 XX XX XX XX"></div>
+</div>
+<div class="f"><label>Médecin traitant</label><input name="medecin" placeholder="Dr. Nom — Cabinet — Ville"></div>
+<div class="g2">
+  <div class="f"><label>Centre de rééducation / Suivi</label><input name="centre" placeholder="Nom du centre"></div>
+  <div class="f"><label>Médecin spécialiste</label><input name="specialiste" placeholder="Dr. Nom — Spécialité"></div>
+</div>`;}
+
+// ── SÉCURITÉ SOCIALE / MUTUELLE ─────────────────────────────────
+function secSS(r){return `
+<div class="sec-title">Couverture sociale</div>
+<div class="sec-sub">Sécurité Sociale</div>
+<div class="g2">
+  <div class="f"><label>N° Sécurité Sociale</label><input name="nss" placeholder="0 00 00 000 000 00" inputmode="numeric" style="font-family:monospace"></div>
+  <div class="f"><label>Caisse SS (CPAM)</label><input name="cpam" placeholder="ex: CPAM 78"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Taux remboursement SS</label>
+    <select name="taux_ss"><option>100% (ALD)</option><option>80%</option><option>65%</option><option>Non renseigné</option></select>
+  </div>
+  <div class="f"><label>ALD (Affection Longue Durée)</label>
+    <select name="ald"><option>Oui</option><option>Non</option><option>En cours</option></select>
+  </div>
+</div>
+<div class="f"><label>N° ALD / Exonération</label><input name="n_ald" placeholder="" style="font-family:monospace"></div>
+
+<div class="sec-sub" style="margin-top:.5rem">Mutuelle / Complémentaire</div>
+<div class="g2">
+  <div class="f"><label>Nom de la mutuelle</label><input name="mutuelle" placeholder="ex: MGEN, Harmonie…"></div>
+  <div class="f"><label>N° Adhérent</label><input name="n_mutuelle" placeholder="" style="font-family:monospace"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Téléphone mutuelle</label><input name="tel_mutuelle" type="tel" placeholder=""></div>
+  <div class="f"><label>Prise en charge mutuelle</label>
+    <select name="pc_mutuelle"><option>Accord préalable nécessaire</option><option>Prise en charge directe</option><option>Remboursement différé</option><option>Non prise en charge</option><option>Non renseigné</option></select>
+  </div>
+</div>
+<div class="f"><label>Accord mutuelle obtenu ?</label>
+  <div class="rpills" style="margin-top:.25rem">
+    <div class="rpill" data-n="accord_mut" data-v="oui" onclick="rpSel(this)">✅ Oui</div>
+    <div class="rpill" data-n="accord_mut" data-v="non" onclick="rpSel(this)">❌ Non</div>
+    <div class="rpill" data-n="accord_mut" data-v="en_cours" onclick="rpSel(this)">🔄 En cours</div>
+  </div>
+</div>
+<div class="sec-sub" style="margin-top:.5rem">MDPH / PCH (si applicable)</div>
+<div class="g2">
+  <div class="f"><label>Dossier MDPH</label>
+    <select name="mdph"><option>Non concerné</option><option>Dossier en cours</option><option>Accord PCH obtenu</option><option>Refus</option></select>
+  </div>
+  <div class="f"><label>Montant PCH accordé</label><input name="montant_pch" placeholder="€/mois" inputmode="decimal"></div>
+</div>
+<div class="f"><label>Reste à charge patient estimé</label><input name="rac" placeholder="0,00 €" inputmode="decimal"></div>`;}
+
+// ── PATHOLOGIE HANDI ────────────────────────────────────────────
+function secPathoHandi(r){return `
+<div class="sec-title">Pathologie & évaluation des besoins</div>
+<div class="g2">
+  <div class="f"><label>Diagnostic principal</label><input name="pathologie" placeholder="ex: Paraplégique T6, SEP, AVC…"></div>
+  <div class="f"><label>Étiologie</label><input name="etiologie" placeholder="ex: Traumatique, vasculaire, dégénérative…"></div>
+</div>
+<div class="f"><label>Comorbidités</label>
+  <div class="chips" id="comorbid-chips">
+    ${['Diabète','HTA','Insuffisance cardiaque','BPCO','Obésité','Dépression/Anxiété','Douleurs chroniques','Épilepsie','Troubles cognitifs','Troubles visuels','Troubles auditifs','Escarres'].map(c=>`<div class="chip" data-n="comorbidites" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Autre comorbidité</label><input name="comorbid_autre" placeholder="Préciser…"></div>
+<div class="sec-sub">Capacités motrices</div>
+<div class="g2">
+  <div class="f"><label>Membre supérieur droit</label>
+    <select name="ms_droit"><option>Valide</option><option>Faiblesse modérée</option><option>Faiblesse sévère</option><option>Paralysie</option></select>
+  </div>
+  <div class="f"><label>Membre supérieur gauche</label>
+    <select name="ms_gauche"><option>Valide</option><option>Faiblesse modérée</option><option>Faiblesse sévère</option><option>Paralysie</option></select>
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Transferts</label>
+    <select name="transferts"><option>Autonome</option><option>Avec aide humaine</option><option>Avec lève-personne</option><option>Impossible</option></select>
+  </div>
+  <div class="f"><label>Station assise</label>
+    <select name="station_assise"><option>Stable autonome</option><option>Stable avec appui</option><option>Instable</option><option>Impossible</option></select>
+  </div>
+</div>
+<div class="f"><label>Autonomie de déplacement actuelle</label>
+  <div class="chips">
+    ${['Marche seul','Marche avec aide technique','FRM manuel','FRM électrique','Dépend d\'autrui','Confiné au lit'].map(c=>`<div class="chip" data-n="autonomie_dep" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Poids du patient</label><input name="poids" placeholder="kg" inputmode="decimal"></div>
+  <div class="f"><label>IMC / Morphologie</label><input name="imc" placeholder="ex: Obèse, Svelte…"></div>
+</div>
+<div class="f"><label>Observations cliniques</label><textarea name="obs_clinique" placeholder="Spasticité, douleurs, escarres, budget énergie…" rows="3"></textarea></div>`;}
+
+// ── PATHOLOGIE MAD ──────────────────────────────────────────────
+function secPathoMAD(r){return `
+<div class="sec-title">Pathologie & évaluation des besoins</div>
+<div class="g2">
+  <div class="f"><label>Diagnostic principal</label><input name="pathologie" placeholder="ex: AVC, Parkinson, fracture du col…"></div>
+  <div class="f"><label>GIR</label>
+    <select name="gir"><option>—</option><option>GIR 1 (très dépendant)</option><option>GIR 2</option><option>GIR 3</option><option>GIR 4</option><option>GIR 5 (peu dépendant)</option><option>GIR 6 (autonome)</option><option>Non évalué</option></select>
+  </div>
+</div>
+<div class="f"><label>Comorbidités</label>
+  <div class="chips">
+    ${['Diabète','HTA','Insuffisance cardiaque','BPCO','Obésité','Troubles cognitifs (type Alzheimer)','Dépression','Douleurs chroniques','Troubles visuels','Chutes répétées','Incontinence'].map(c=>`<div class="chip" data-n="comorbidites" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Autre comorbidité</label><input name="comorbid_autre" placeholder="Préciser…"></div>
+<div class="g2">
+  <div class="f"><label>Durée prévisionnelle</label>
+    <select name="duree"><option>Court terme (&lt;1 mois)</option><option>Moyen terme (1–6 mois)</option><option>Long terme (&gt;6 mois)</option><option>Permanent</option></select>
+  </div>
+  <div class="f"><label>Poids du patient</label><input name="poids" placeholder="kg" inputmode="decimal"></div>
+</div>
+<div class="f"><label>Aides humaines en place</label><textarea name="aides_humaines" placeholder="Auxiliaire de vie (heures/j), infirmier, aide-soignante, SSIAD…" rows="2"></textarea></div>
+<div class="f"><label>Matériel déjà en place</label><textarea name="mat_existant" placeholder="Matériel actuel, ancienneté, état…" rows="2"></textarea></div>`;}
+
+// ── ENVIRONNEMENT HANDI ─────────────────────────────────────────
+function secEnvHandi(r){return `
+<div class="sec-title">Environnement & mesures anthropométriques</div>
+<div class="sec-sub">Type de logement</div>
+<div class="rpills" id="rp-logement">
+  ${['Maison individuelle','Appartement','EHPAD/Structure','Autre'].map(v=>`<div class="rpill" data-n="logement" data-v="${v}" onclick="rpSel(this)">${v}</div>`).join('')}
+</div>
+<div class="g2" style="margin-top:.75rem">
+  <div class="f"><label>Étage</label>
+    <select name="etage"><option>RDC</option><option>1er étage</option><option>2ème étage</option><option>3ème étage et +</option></select>
+  </div>
+  <div class="f"><label>Accès à l'étage</label>
+    <select name="acces_etage"><option>N/A (RDC)</option><option>Ascenseur</option><option>Monte-escalier</option><option>Escalier uniquement</option></select>
+  </div>
+</div>
+<div class="sec-sub">Accès &amp; portes</div>
+<div class="g2">
+  <div class="f"><label>Largeur porte d'entrée</label><input name="lp_entree" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Largeur porte WC</label><input name="lp_wc" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Largeur porte chambre</label><input name="lp_chambre" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Largeur porte SDB</label><input name="lp_sdb" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Largeur couloir principal</label><input name="larg_couloir" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Espace dégagé chambre (rayon)</label><input name="espace_chambre" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="f"><label>Contraintes identifiées</label>
+  <div class="chips">
+    ${['Seuil de porte','Marche isolée','Couloir trop étroit','SDB inadaptée','WC inaccessible','Sol glissant','Rampe absente','Parking PMR absent','Digicode difficile','Boîte aux lettres inaccessible'].map(c=>`<div class="chip" data-n="contraintes" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Observations environnement</label><textarea name="obs_env" placeholder="Accès, stationnement, travaux d'adaptation envisagés…" rows="2"></textarea></div>
+<div class="sec-sub" style="margin-top:.5rem">Mesures anthropométriques</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.5rem">
+  ${[['poids','Poids','kg'],['taille','Taille','cm'],['larg_bassin','Larg. bassin','cm'],['larg_epaules','Larg. épaules','cm'],['prof_assise','Prof. assise','cm'],['haut_assise','Haut. assise','cm'],['haut_dossier','Haut. dossier','cm'],['long_jambe','Long. jambe','cm'],['tour_thorax','Tour thorax','cm'],['long_bras','Long. bras','cm']].map(([n,l,u])=>`
+  <div class="mbox"><div class="mlbl">${l}</div><input class="minp" name="${n}" placeholder="—" inputmode="decimal"><div class="munit">${u}</div></div>`).join('')}
+</div>
+<div class="f" style="margin-top:.75rem"><label>Usage prévu du fauteuil</label>
+  <div class="chips">
+    ${['Intérieur uniquement','Extérieur uniquement','Mixte int/ext','Transports en commun','Véhicule personnel','Longues distances','Travail/études','Sport / loisirs'].map(c=>`<div class="chip" data-n="usage_frm" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Autonomie souhaitée</label><input name="autonomie_souh" placeholder="km/jour" inputmode="decimal"></div>
+  <div class="f"><label>Chargement dans véhicule</label>
+    <select name="chargement_veh"><option>Non concerné</option><option>Oui — Manuel</option><option>Oui — Avec aide</option><option>Oui — Dispositif de chargement</option></select>
+  </div>
+</div>`;}
+
+// ── ENVIRONNEMENT MAD ───────────────────────────────────────────
+function secEnvMAD(r){return `
+<div class="sec-title">Environnement & habitat</div>
+<div class="sec-sub">Type de logement</div>
+<div class="rpills" id="rp-logement">
+  ${['Maison individuelle','Appartement','RDC','Studio','Résidence senior','Autre'].map(v=>`<div class="rpill" data-n="logement" data-v="${v}" onclick="rpSel(this)">${v}</div>`).join('')}
+</div>
+<div class="g2" style="margin-top:.75rem">
+  <div class="f"><label>Étage</label>
+    <select name="etage"><option>RDC</option><option>1er</option><option>2ème</option><option>3ème et +</option></select>
+  </div>
+  <div class="f"><label>Accès étage</label>
+    <select name="acces_etage"><option>N/A</option><option>Ascenseur</option><option>Monte-escalier</option><option>Escalier uniquement</option></select>
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Largeur porte entrée</label><input name="lp_entree" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Largeur porte chambre</label><input name="lp_chambre" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Largeur porte SDB/WC</label><input name="lp_sdb" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Largeur couloir</label><input name="larg_couloir" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="f"><label>Contraintes</label>
+  <div class="chips">
+    ${['Seuil de porte','Marche isolée','Couloir étroit','SDB inadaptée','WC inaccessible','Sol glissant','Escalier sans rampe','Ascenseur trop petit','Extérieur inaccessible'].map(c=>`<div class="chip" data-n="contraintes" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Observations</label><textarea name="obs_env" placeholder="Accès, seuils, éclairage, chauffage, travaux envisagés…" rows="2"></textarea></div>`;}
+
+// ── VIE QUOTIDIENNE MAD ─────────────────────────────────────────
+function secVieQuot(r){return `
+<div class="sec-title">Besoins vie quotidienne</div>
+<div class="sec-sub">Mobilité</div>
+<div class="f">
+  <div class="chips">
+    ${['Se lever / s\'asseoir seul','Marcher seul','Marcher avec aide','Utilise déjà un déambulateur','Utilise déjà une canne','Risque de chutes','Chutes récentes'].map(c=>`<div class="chip" data-n="mobilite" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="sec-sub">Salle de bain / Hygiène</div>
+<div class="f">
+  <div class="chips">
+    ${['Bain existant','Douche italienne','Douche avec bac','Siège de bain nécessaire','Fauteuil de douche nécessaire','Barre d\'appui WC nécessaire','Barre appui SDB nécessaire','WC surélevé nécessaire','Aide pour toilette'].map(c=>`<div class="chip" data-n="sdb" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="sec-sub">Lit</div>
+<div class="f">
+  <div class="chips">
+    ${['Lit standard existant','Lit médicalisé nécessaire','Potence de lit','Barrières de lit','Matelas anti-escarre','Table de lit','Aide pour transfert lit'].map(c=>`<div class="chip" data-n="besoins_lit" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="sec-sub">Escaliers &amp; accès</div>
+<div class="f">
+  <div class="chips">
+    ${['Rampe d\'appui nécessaire','Monte-escalier électrique','Rampe amovible','Girophare / signal','Accès extérieur à adapter'].map(c=>`<div class="chip" data-n="acces_besoins" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="sec-sub">Respiration &amp; soins</div>
+<div class="f">
+  <div class="chips">
+    ${['Concentrateur O2 fixe','Concentrateur O2 portable','Bouteille O2','Aérosol / Nébuliseur','Aspirateur de mucosités','Assistance ventilatoire'].map(c=>`<div class="chip" data-n="resp" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Autres besoins identifiés</label><textarea name="autres_besoins" placeholder="Repas, médicaments, communication, alarme de chute…" rows="2"></textarea></div>`;}
+
+// ── MATÉRIEL FRM ─────────────────────────────────────────────────
+function secMatFRM(r){return `
+<div class="sec-title">Matériel FRM — ${NL[r.nature]||''}</div>
+<div class="sec-sub">Type d'acquisition</div>
+<div class="rpills" id="rp-acquisition">
+  ${['Nouvelle acquisition','Renouvellement','Remplacement (panne)','Essai / Prêt','Modification / Adaptation'].map(v=>`<div class="rpill" data-n="acquisition" data-v="${v}" onclick="rpSel(this)">${v}</div>`).join('')}
+</div>
+<div class="sec-sub" style="margin-top:.75rem">Catégorie de fauteuil</div>
+<div class="rpills" id="rp-cat-frm">
+  ${['FRM Manuel','FRM Électrique','Scooter PMR','Verticalisateur','Fauteuil douche motorisé'].map(v=>`<div class="rpill" data-n="cat_frm" data-v="${v}" onclick="rpSel(this)">${v}</div>`).join('')}
+</div>
+<div class="sec-sub" style="margin-top:.75rem">Sous-type</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.5rem" id="mat-grid">
+  ${['FRM Manuel standard','FRM Manuel léger/actif','FRM Manuel sport','FRM Manuel pédiatrique','FRM Manuel grande largeur','FRE Joystick standard','FRE Joystick compact','FRE Mentonnière','FRE Soufflage / Aspiration','FRE Ceinture pelvienne','FRE Pilotage oculaire','Scooter 3 roues','Scooter 4 roues','Fauteuil douche roulant','Fauteuil coquille','Cushion/Coussin seul'].map(m=>`
+  <div class="chip" data-n="sous_type_frm" data-v="${m}" style="justify-content:center;border-radius:8px;text-align:center">${m}</div>`).join('')}
+</div>
+<div class="sec-sub" style="margin-top:.75rem">Caractéristiques techniques</div>
+<div class="g2">
+  <div class="f"><label>Marque / Fabricant</label><input name="marque" placeholder="Invacare, Sunrise, Permobil…"></div>
+  <div class="f"><label>Modèle exact</label><input name="modele" placeholder="Action 3 NG, G3 Storm…"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Réf. LPP</label><input name="ref_lpp" placeholder="XXXXXXXXXX" style="font-family:monospace" inputmode="numeric"></div>
+  <div class="f"><label>N° de série</label><input name="serie" style="font-family:monospace"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Largeur assise prescrite</label><input name="mat_larg" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Profondeur assise prescrite</label><input name="mat_prof" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Hauteur assise</label><input name="mat_haut" placeholder="cm" inputmode="decimal"></div>
+  <div class="f"><label>Hauteur dossier</label><input name="haut_dossier_mat" placeholder="cm" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Poids max supporté</label><input name="poids_max" placeholder="kg" inputmode="decimal"></div>
+  <div class="f"><label>Poids du fauteuil</label><input name="poids_mat" placeholder="kg" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Roues arrière</label><input name="roues_ar" placeholder="ex: 24'' gonfl."></div>
+  <div class="f"><label>Roues avant</label><input name="roues_av" placeholder="ex: 8'' plein"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Autonomie batterie</label><input name="autonomie_bat" placeholder="km" inputmode="decimal"></div>
+  <div class="f"><label>Vitesse max</label><input name="vitesse" placeholder="km/h" inputmode="decimal"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Prix HT</label><input name="prix_ht" placeholder="0,00 €" inputmode="decimal"></div>
+  <div class="f"><label>TVA</label><select name="tva"><option value="5.5">5,5%</option><option value="10">10%</option><option value="20">20%</option><option value="0">Exonéré</option></select></div>
+</div>
+<div class="f"><label>Options / Accessoires</label><textarea name="options" placeholder="Coussin, appuis-tête, ceinture, repose-pieds, sacoche, protège-roues, chargeur…" rows="2"></textarea></div>
+<div class="f"><label>Observations matériel</label><textarea name="obs_mat" placeholder="Justification du choix, alternatives, contraintes…" rows="2"></textarea></div>`;}
+
+// ── MATÉRIEL MAD ────────────────────────────────────────────────
+function secMatMAD(r){
+  const mats=['Lit médicalisé 1 moteur','Lit médicalisé 2 moteurs','Lit médicalisé 3 moteurs','Potence de lit','Barrières de lit','Matelas anti-escarre mousse','Matelas alternating électrique','Coussin anti-escarre','Lève-personne vertical','Lève-personne sur rail','Verticalisateur','Déambulateur 2 roues','Déambulateur 4 roues (rollator)','Béquilles','Canne simple','Canne tripode/quadripode','Fauteuil de douche à dossier','Fauteuil de douche roulant','Siège de bain','Planche de bain','WC surélevé avec accoudoirs','Barre d\'appui murale','Rampe d\'accès amovible','Monte-escalier droit','Monte-escalier courbe','Concentrateur O2 fixe','Concentrateur O2 portable','Aérosol nébuliseur','Aspirateur de mucosités','Lit de nursing','Table de lit réglable','Fauteuil gériatrique'];
+  return `
+<div class="sec-title">Matériel MAD — ${NL[r.nature]||''}</div>
+<div class="sec-sub">Sélection du matériel</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:.4rem">
+  ${mats.map(m=>`<div class="chip" data-n="materiels_mad" data-v="${m}" style="justify-content:center;border-radius:8px;text-align:center;font-size:12px">${m}</div>`).join('')}
+</div>
+<div class="sec-sub" style="margin-top:.75rem">Détail du matériel principal</div>
+<div class="g2">
+  <div class="f"><label>Marque / Fabricant</label><input name="marque" placeholder="ex: Invacare, Drive…"></div>
+  <div class="f"><label>Modèle</label><input name="modele" placeholder="Référence exacte"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Réf. LPP</label><input name="ref_lpp" placeholder="XXXXXXXXXX" style="font-family:monospace" inputmode="numeric"></div>
+  <div class="f"><label>N° de série</label><input name="serie" style="font-family:monospace"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Prix HT</label><input name="prix_ht" placeholder="0,00 €" inputmode="decimal"></div>
+  <div class="f"><label>TVA</label><select name="tva"><option value="5.5">5,5%</option><option value="10">10%</option><option value="20">20%</option><option value="0">Exonéré</option></select></div>
+</div>
+<div class="f"><label>Observations</label><textarea name="obs_mat" placeholder="Justification, alternatives envisagées, adaptation spécifique…" rows="2"></textarea></div>`;}
+
+// ── ESSAI MATÉRIEL ───────────────────────────────────────────────
+function secEssai(r){
+  const items=r.type==='handi'?['Facilité de conduite/propulsion','Confort de l\'assise','Stabilité générale','Franchissement de seuils/obstacles','Maniabilité en intérieur','Utilisation en extérieur','Facilité de pliage / chargement','Compatibilité avec le domicile','Autonomie batterie (si FRE)','Facilité d\'entretien','Satisfaction globale du patient']:['Facilité d\'utilisation','Confort patient','Sécurité / stabilité','Adaptation au domicile','Facilité pour l\'aidant','Satisfaction patient','Satisfaction aidant'];
+  return `
+<div class="sec-title">Évaluation lors de l'essai</div>
+<div class="notice n-info">Notation : ★☆☆☆☆ = insuffisant · ★★★★★ = excellent</div>
+${items.map((it,i)=>`
+<div class="eval-row">
+  <div class="eval-lbl">${it}</div>
+  <div class="stars">${[1,2,3,4,5].map(n=>`<div class="star" onclick="starTap(this,${n},${i})" data-row="${i}" data-val="${n}">★</div>`).join('')}</div>
+</div>`).join('')}
+<div class="g2" style="margin-top:.75rem">
+  <div class="f"><label>Durée d'essai</label><input name="duree_essai" placeholder="ex: 45 min"></div>
+  <div class="f"><label>Lieu d'essai</label><input name="lieu_essai" placeholder="Domicile / Showroom…"></div>
+</div>
+<div class="f"><label>Commentaires essai</label><textarea name="obs_essai" placeholder="Ressenti du patient, difficultés, ajustements effectués…" rows="3"></textarea></div>`;}
+
+// ── PRÉCONISATION ────────────────────────────────────────────────
+function secPreco(r){return `
+<div class="sec-title">Préconisation & suites à donner</div>
+<div class="g2">
+  <div class="f"><label>Matériel retenu / recommandé</label><input name="mat_reco" placeholder="Référence exacte"></div>
+  <div class="f"><label>Urgence</label>
+    <select name="urgence"><option>Normal (délai standard)</option><option>Prioritaire (sous 48h)</option><option>Urgent (sous 24h)</option><option>Différé</option></select>
+  </div>
+</div>
+<div class="f"><label>Actions à mener</label>
+  <div class="chips">
+    ${['Devis à établir','Ordonnance à obtenir','Accord mutuelle en attente','Accord MDPH','Essai complémentaire','Livraison à planifier','Formation patient','Formation aidant','Visite de contrôle','Contacter prescripteur','Travaux d\'adaptation','Contacter assistante sociale'].map(c=>`<div class="chip" data-n="actions" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Synthèse & conclusions</label><textarea name="synthese" placeholder="Résumé de la visite, bilan des besoins, recommandations principales, points d'attention…" rows="5"></textarea></div>
+${r.nature==='livraison'?`
+<div class="sec-sub" style="margin-top:.5rem">Informations livraison</div>
+<div class="g2">
+  <div class="f"><label>Date de livraison</label><input name="date_liv" type="date"></div>
+  <div class="f"><label>Technicien livraison</label><input name="tech_liv" placeholder="Prénom Nom"></div>
+</div>
+<div class="f"><label>Vérifications effectuées</label>
+  <div class="chips">
+    ${['Matériel conforme','N° série vérifié','Test OK','Réglages faits','Patient formé','Aidant formé','Notice remise','RAC expliqué'].map(c=>`<div class="chip" data-n="verif_liv" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>`:''}
+<div class="f"><label>Prochain RDV / suivi prévu</label><input name="prochaine_visite" type="date"></div>`;}
+
+// ── SIGNATURES ───────────────────────────────────────────────────
+function secSig(r){return `
+<div class="sec-title">Signatures</div>
+<div class="notice n-ok">✅ Je certifie que les informations ci-dessus sont exactes et que le matériel est adapté aux besoins du bénéficiaire.</div>
+<div class="f"><label>Signature technicien / commercial</label>
+  <div class="sig-box" id="sw-tech" onclick="initSig('tech')">
+    <canvas id="sc-tech" height="100"></canvas>
+    <div class="sig-ph"><span>✍️</span><p>Toucher pour signer</p></div>
+    <button class="sig-clr no-print" onclick="clrSig(event,'tech')">Effacer</button>
+  </div>
+  <div class="f" style="margin-top:.5rem"><label>Nom technicien</label><input name="sig_tech_nom" value="${r.tech||''}" placeholder="Prénom Nom"></div>
+</div>
+<div class="f"><label>Signature patient / représentant légal</label>
+  <div class="sig-box" id="sw-pat" onclick="initSig('pat')">
+    <canvas id="sc-pat" height="100"></canvas>
+    <div class="sig-ph"><span>✍️</span><p>Toucher pour signer</p></div>
+    <button class="sig-clr no-print" onclick="clrSig(event,'pat')">Effacer</button>
+  </div>
+  <div class="f" style="margin-top:.5rem"><label>Nom patient</label><input name="sig_pat_nom" value="${r.patient||r.etab||''}" placeholder="Prénom Nom"></div>
+</div>
+<div class="f"><label>Signature médecin / prescripteur (si applicable)</label>
+  <div class="sig-box" id="sw-med" onclick="initSig('med')">
+    <canvas id="sc-med" height="100"></canvas>
+    <div class="sig-ph"><span>✍️</span><p>Toucher pour signer</p></div>
+    <button class="sig-clr no-print" onclick="clrSig(event,'med')">Effacer</button>
+  </div>
+  <div class="f" style="margin-top:.5rem"><label>Dr.</label><input name="sig_med_nom" placeholder="Dr. Nom — Spécialité"></div>
+</div>`;}
+
+// ── ÉTABLISSEMENT (COLLECTIVITÉS) ────────────────────────────────
+function secEtab(r){return `
+<div class="sec-title">Informations établissement</div>
+<div class="f"><label>Nom de l'établissement</label><input name="etab" value="${r.etab||''}" placeholder="EHPAD, MAS, Foyer…"></div>
+<div class="g2">
+  <div class="f"><label>Type d'établissement</label>
+    <select name="type_etab"><option>EHPAD</option><option>MAS</option><option>FAM</option><option>Foyer de vie</option><option>IME</option><option>SSIAD</option><option>HAD</option><option>Clinique</option><option>Hôpital</option><option>Autre</option></select>
+  </div>
+  <div class="f"><label>N° FINESS</label><input name="finess" placeholder="000 000 000"></div>
+</div>
+<div class="f"><label>Adresse</label><input name="adresse_etab" placeholder="N°, rue, code postal, ville"></div>
+<div class="g2">
+  <div class="f"><label>Téléphone standard</label><input name="tel_etab" type="tel" placeholder="01 XX XX XX XX"></div>
+  <div class="f"><label>Email</label><input name="email_etab" type="email" inputmode="email" placeholder="contact@etab.fr"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Responsable / Directeur</label><input name="directeur" placeholder="Nom — Fonction"></div>
+  <div class="f"><label>Téléphone direct</label><input name="tel_dir" type="tel" placeholder=""></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Référent achats / IDE référente</label><input name="referent" placeholder="Nom — Fonction"></div>
+  <div class="f"><label>Téléphone référent</label><input name="tel_referent" type="tel" placeholder=""></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Nombre de lits / places</label><input name="nb_lits" placeholder="" inputmode="numeric"></div>
+  <div class="f"><label>Nombre de résidents actuels</label><input name="nb_residents" placeholder="" inputmode="numeric"></div>
+</div>
+<div class="g2">
+  <div class="f"><label>Convention tarifaire</label>
+    <select name="convention"><option>Non renseigné</option><option>Forfait journalier</option><option>Prix de journée</option><option>Convention tripartite</option><option>CPOM</option><option>SERAFIN-PH</option></select>
+  </div>
+  <div class="f"><label>Budget annuel matériel estimé</label><input name="budget_mat" placeholder="€/an" inputmode="decimal"></div>
+</div>`;}
+
+// ── ANALYSE COMMERCIALE (COLLECTIVITÉS) ──────────────────────────
+function secCommercial(r){return `
+<div class="sec-title">Analyse commerciale & opportunités</div>
+<div class="sec-sub">Groupement / Centrale d'achats</div>
+<div class="f"><label>Appartient à un groupement ?</label>
+  <div class="rpills" style="margin-top:.25rem" id="rp-groupement">
+    <div class="rpill" data-n="groupement_oui" data-v="oui" onclick="rpSel(this)">✅ Oui</div>
+    <div class="rpill" data-n="groupement_oui" data-v="non" onclick="rpSel(this)">❌ Non</div>
+    <div class="rpill" data-n="groupement_oui" data-v="nsp" onclick="rpSel(this)">❓ NSP</div>
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Nom du groupement</label><input name="nom_groupement" placeholder="ex: UniHA, UGAP, Resah…"></div>
+  <div class="f"><label>Contrat en cours jusqu'au</label><input name="fin_contrat" type="date"></div>
+</div>
+<div class="sec-sub" style="margin-top:.5rem">Concurrence en place</div>
+<div class="f"><label>Fournisseurs actuels identifiés</label>
+  <div class="chips">
+    ${['Harmonie Médical','Bastide Médical','Orkyn','Santélys','Adair','LVL Médical','Air Liquide Santé','Autre PSDM local','Achat direct fabricant','Non renseigné'].map(c=>`<div class="chip" data-n="concurrents" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Commentaire concurrence</label><textarea name="obs_concurrence" placeholder="Niveau de satisfaction, contrats, prix pratiqués, points faibles…" rows="2"></textarea></div>
+<div class="sec-sub" style="margin-top:.5rem">Opportunités identifiées</div>
+<div class="f"><label>Opportunités</label>
+  <div class="chips">
+    ${['FRM manuels','FRM électriques','Scooters PMR','Lits médicalisés','Lève-personnes','Anti-escarres','Concentrateurs O2','Déambulateurs','Fauteuils de douche','Petits matériels','Maintenances / SAV','Formation personnel','Appel d\'offres à venir'].map(c=>`<div class="chip" data-n="opportunites" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Potentiel estimé (€/an)</label><input name="potentiel_ca" placeholder="ex: 15 000 €" inputmode="decimal"></div>
+  <div class="f"><label>Probabilité de conversion</label>
+    <select name="proba"><option>Faible (&lt;20%)</option><option>Modérée (20–50%)</option><option>Bonne (50–80%)</option><option>Très bonne (&gt;80%)</option></select>
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Prochain appel d'offres</label><input name="ao_date" type="date"></div>
+  <div class="f"><label>Action commerciale prioritaire</label>
+    <select name="action_prio"><option>Devis à envoyer</option><option>RDV de présentation</option><option>Essai matériel sur site</option><option>Réponse AO</option><option>Suivi à 3 mois</option><option>Compte à développer</option></select>
+  </div>
+</div>
+<div class="f"><label>Notes commerciales</label><textarea name="notes_commerciales" placeholder="Contexte, historique relation, personnalités clés, leviers de décision…" rows="3"></textarea></div>`;}
+
+// ── BESOINS COLLECTIVITÉS ────────────────────────────────────────
+function secBesoinsColl(r){return `
+<div class="sec-title">Besoins & matériel — Collectivité</div>
+<div class="sec-sub">Matériel existant à renouveler</div>
+<div class="f"><label>Types de matériels concernés</label>
+  <div class="chips">
+    ${['FRM manuels','FRM électriques','Scooters','Lits médicalisés','Matelas anti-escarres','Lève-personnes','Fauteuils de douche','Déambulateurs','Barres d\'appui','Concentrateurs O2','Tables de lit','Autres'].map(c=>`<div class="chip" data-n="mat_besoins" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="g2">
+  <div class="f"><label>Quantité estimée totale</label><input name="qte_totale" placeholder="Nb d'unités" inputmode="numeric"></div>
+  <div class="f"><label>Délai souhaité</label>
+    <select name="delai_livraison"><option>Immédiat</option><option>1 à 3 mois</option><option>3 à 6 mois</option><option>6 à 12 mois</option><option>Dans le cadre d'un AO</option></select>
+  </div>
+</div>
+<div class="f"><label>Détail des besoins par résident</label><textarea name="detail_besoins" placeholder="Ex: 3 FRE pour résidents non autonomes, 5 FRM standard, renouvellement 12 lits médicalisés…" rows="3"></textarea></div>
+<div class="sec-sub" style="margin-top:.5rem">Maintenance & SAV</div>
+<div class="f"><label>Contrat de maintenance souhaité ?</label>
+  <div class="rpills" style="margin-top:.25rem">
+    <div class="rpill" data-n="maintenance_souh" data-v="oui" onclick="rpSel(this)">✅ Oui</div>
+    <div class="rpill" data-n="maintenance_souh" data-v="non" onclick="rpSel(this)">❌ Non</div>
+    <div class="rpill" data-n="maintenance_souh" data-v="a_evaluer" onclick="rpSel(this)">🔄 À évaluer</div>
+  </div>
+</div>
+<div class="f"><label>Formation du personnel souhaitée ?</label>
+  <div class="chips">
+    ${['Manipulation FRE','Manipulation lève-personne','Prévention escarres','Transferts patient','Réglages FRM','Entretien matériel'].map(c=>`<div class="chip" data-n="formation_souh" data-v="${c}">${c}</div>`).join('')}
+  </div>
+</div>
+<div class="f"><label>Observations</label><textarea name="obs_besoins" placeholder="Spécificités du parc, contraintes techniques, remarques…" rows="2"></textarea></div>`;}
+
+// ═══════════════════════════════════════════════════════════════
+// INTERACTIVITY
+// ═══════════════════════════════════════════════════════════════
+function initChips(r){
+  document.querySelectorAll('#fscroll .chip[data-n]').forEach(c=>{
+    c.addEventListener('click',()=>c.classList.toggle('on'));
+  });
+}
+function rpSel(el){
+  const n=el.dataset.n;
+  // Find sibling rpills with same data-n
+  el.closest('.rpills')?.querySelectorAll('.rpill').forEach(b=>b.classList.remove('on'));
+  // Also search by data-n in broader parent
+  const parent=el.closest('.fsec')||el.closest('.msheet');
+  if(parent) parent.querySelectorAll(`.rpill[data-n="${n}"]`).forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+function starTap(el,val,row){
+  document.querySelectorAll(`.star[data-row="${row}"]`).forEach((s,i)=>s.classList.toggle('on',i<val));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SIGNATURES
+// ═══════════════════════════════════════════════════════════════
+const SIGS={};
+function initSig(key){
+  const wrap=document.getElementById('sw-'+key);
+  if(!wrap||SIGS[key])return;
+  const canvas=document.getElementById('sc-'+key);
+  canvas.width=wrap.offsetWidth||320;
+  const ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#0F1923';ctx.lineWidth=2;ctx.lineCap='round';
+  SIGS[key]={ctx,canvas,wrap};
+  let drawing=false,lx=0,ly=0;
+  function pos(e){const r=canvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:(s.clientX-r.left)*(canvas.width/r.width),y:(s.clientY-r.top)*(canvas.height/r.height)};}
+  function start(e){e.preventDefault();drawing=true;const p=pos(e);lx=p.x;ly=p.y;wrap.classList.add('signed');}
+  function move(e){e.preventDefault();if(!drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.stroke();lx=p.x;ly=p.y;}
+  function end(){drawing=false;}
+  canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);canvas.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);
+}
+function clrSig(e,key){
+  e.stopPropagation();
+  const s=SIGS[key];if(!s)return;
+  s.ctx.clearRect(0,0,s.canvas.width,s.canvas.height);
+  s.wrap.classList.remove('signed');
+  delete SIGS[key];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SAVE / RESTORE
+// ═══════════════════════════════════════════════════════════════
+function collectData(){
+  const d={};
+  document.querySelectorAll('#fscroll input,#fscroll select,#fscroll textarea').forEach(el=>{
+    if(!el.name||el.name==='num')return;
+    d[el.name]=el.value;
+  });
+  // chips
+  document.querySelectorAll('#fscroll .chip[data-n].on').forEach(c=>{
+    const n=c.dataset.n;
+    if(!d[n])d[n]=[];
+    if(!Array.isArray(d[n]))d[n]=[d[n]];
+    d[n].push(c.dataset.val);
+  });
+  // rpills
+  document.querySelectorAll('#fscroll .rpill.on').forEach(p=>{
+    if(p.dataset.n)d[p.dataset.n]=p.dataset.v;
+  });
+  // stars
+  const stars={};
+  document.querySelectorAll('#fscroll .star.on').forEach(s=>{
+    const row=s.dataset.row;
+    stars[row]=Math.max(stars[row]||0,parseInt(s.dataset.val));
+  });
+  d._stars=stars;
+  return d;
+}
+
+function saveReport(){
+  if(!cid)return;
+  const r=reports.find(x=>x.id===cid);if(!r)return;
+  r.data=collectData();
+  if(r.data.nom&&r.data.prenom)r.patient=r.data.nom+' '+r.data.prenom;
+  else if(r.data.patient)r.patient=r.data.patient;
+  if(r.data.etab)r.etab=r.data.etab;
+  if(r.data.date)r.date=r.data.date;
+  if(r.data.tech)r.tech=r.data.tech;
+  persist();
+}
+
+function doSave(btn){
+  saveReport();
+  renderList();
+  const o=btn.textContent;btn.textContent='✓ Sauvegardé';setTimeout(()=>btn.textContent=o,1500);
+}
+
+function restoreData(r){
+  if(!r.data||!Object.keys(r.data).length)return;
+  const d=r.data;
+  document.querySelectorAll('#fscroll input,#fscroll select,#fscroll textarea').forEach(el=>{
+    if(!el.name||el.name==='num')return;
+    const v=d[el.name];
+    if(typeof v==='string')el.value=v;
+  });
+  document.querySelectorAll('#fscroll .chip[data-n]').forEach(c=>{
+    const arr=d[c.dataset.n];
+    if(Array.isArray(arr)&&arr.includes(c.dataset.val))c.classList.add('on');
+  });
+  document.querySelectorAll('#fscroll .rpill[data-n]').forEach(p=>{
+    if(d[p.dataset.n]===p.dataset.v)p.classList.add('on');
+  });
+  if(d._stars){
+    Object.entries(d._stars).forEach(([row,val])=>{
+      document.querySelectorAll(`.star[data-row="${row}"]`).forEach((s,i)=>s.classList.toggle('on',i<val));
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIL
+// ═══════════════════════════════════════════════════════════════
+function openMailModal(){saveReport();openM('m-mail');}
+function doMail(){
+  const r=reports.find(x=>x.id===cid);if(!r)return;
+  const d=r.data||{};
+  const to=document.getElementById('mail-to').value;
+  const cc=document.getElementById('mail-cc').value;
+  const msg=document.getElementById('mail-msg').value;
+  const subj=encodeURIComponent(`Rapport Meditec ${r.num} — ${r.patient||r.etab||''} — ${fdate(r.date)}`);
+  const pat=d.nom&&d.prenom?d.nom+' '+d.prenom:r.patient||r.etab||'—';
+  const body=encodeURIComponent(
+    (msg?msg+'\n\n':'')+
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'+
+    'RAPPORT DE VISITE MEDITEC PSDM\n'+
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'+
+    `N° : ${r.num}\n`+
+    `Date : ${fdate(r.date)}\n`+
+    `Type : ${{handi:'Handicap FRM',mad:'MAD',collectivite:'Collectivité'}[r.type]||r.type}\n`+
+    `Nature : ${NL[r.nature]||'—'}\n`+
+    `Technicien : ${r.tech||'—'}\n`+
+    `Patient / Établissement : ${pat}\n`+
+    (d.pathologie?`Pathologie : ${d.pathologie}\n`:'')+
+    (d.medecin?`Médecin : ${d.medecin}\n`:'')+
+    (d.modele?`Matériel : ${d.marque||''} ${d.modele}\n`:'')+
+    (d.ref_lpp?`Réf. LPP : ${d.ref_lpp}\n`:'')+
+    (d.synthese?`\nSynthèse :\n${d.synthese}\n`:'')+
+    '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'+
+    `Meditec PSDM — ${new Date().toLocaleDateString('fr-FR')}`
+  );
+  let m=`mailto:${to}?subject=${subj}&body=${body}`;
+  if(cc)m+=`&cc=${encodeURIComponent(cc)}`;
+  window.location.href=m;
+  closeM('m-mail');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PWA / OFFLINE
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;document.getElementById('iban').classList.add('on');});
+function installPWA(){if(!deferredInstall)return;deferredInstall.prompt();deferredInstall.userChoice.then(()=>{deferredInstall=null;document.getElementById('iban').classList.remove('on');});}
+window.addEventListener('online',()=>document.getElementById('otag').classList.remove('on'));
+window.addEventListener('offline',()=>document.getElementById('otag').classList.add('on'));
+if(!navigator.onLine)document.getElementById('otag').classList.add('on');
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+renderList();
+</script>
+</body>
+</html>
