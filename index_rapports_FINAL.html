@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Meditec Rapports">
+<link rel="manifest" href="manifest.json">
+<title>Meditec — Rapports de visite</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#1B3A6B;--blue:#1A56DB;--blue-l:#EBF2FF;--blue-d:#1240A0;
+  --teal:#0E7C7B;--teal-l:#D1F2EB;--green:#1A7F4B;--green-l:#D5F5E3;
+  --red:#C0392B;--red-l:#FDECEA;--orange:#BA4A00;--orange-l:#FDEBD0;
+  --purple:#5B3FA0;--purple-l:#EDE7F6;
+  --ink:#0F1923;--ink2:#3A4A5C;--ink3:#6B7A8D;
+  --paper:#F5F7FA;--white:#fff;--border:#DDE3EC;--border2:#BFC9D9;
+}
+html,body{height:100%;font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:var(--ink);background:var(--paper);overflow:hidden}
+input,select,textarea,button{font-family:inherit;font-size:15px}
+
+/* ── NAV ── */
+.nav{height:52px;background:var(--navy);display:flex;align-items:center;padding:0 1rem;gap:.625rem;position:sticky;top:0;z-index:100;flex-shrink:0}
+.nav-logo{color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;flex:1}
+.nav-pill{background:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.nav-btn{width:38px;height:38px;border:none;background:rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.nav-link{color:rgba(255,255,255,.75);font-size:12px;text-decoration:none;padding:5px 10px;border:1px solid rgba(255,255,255,.25);border-radius:6px;white-space:nowrap}
+
+/* ── APP ── */
+.app{height:calc(100vh - 52px);display:flex;flex-direction:column;overflow:hidden}
+
+/* ── VIEWS ── */
+#view-list{display:flex;flex-direction:column;height:100%}
+#view-form{display:none;flex-direction:column;height:100%}
+
+/* ── LIST ── */
+.list-head{background:#fff;border-bottom:1px solid var(--border);padding:.75rem 1rem;flex-shrink:0}
+.list-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.list-title{font-size:17px;font-weight:700}
+.filter-row{display:flex;gap:.375rem;overflow-x:auto;scrollbar-width:none}
+.list-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:.75rem 1rem 5rem}
+.fab{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));right:16px;width:56px;height:56px;background:var(--blue);border-radius:50%;border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.4);z-index:50;display:flex;align-items:center;justify-content:center}
+.rcard{background:#fff;border-radius:12px;border:1px solid var(--border);padding:.875rem 1rem;margin-bottom:.625rem;display:flex;gap:.75rem;cursor:pointer;position:relative;transition:border-color .15s}
+.rcard:hover{border-color:var(--blue)}
+.rcard-ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.rcard-body{flex:1;min-width:0}
+.rcard-name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard-meta{font-size:12px;color:var(--ink3);margin-top:3px;display:flex;flex-wrap:wrap;gap:.375rem;align-items:center}
+.badge{padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600;display:inline-block}
+.b-mad{background:#EBF2FF;color:#1240A0}.b-handi{background:#EDE7F6;color:#4A2E8A}.b-coll{background:#D1F2EB;color:#0A5F5F}.b-nat{background:var(--paper);color:var(--ink3);border:1px solid var(--border)}
+.rcard-del{position:absolute;top:.875rem;right:.875rem;border:none;background:transparent;color:var(--ink3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:5px;line-height:1}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--ink3)}
+.chip{padding:7px 13px;border-radius:20px;font-size:13px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;transition:all .15s}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+.chip.sm{padding:5px 10px;font-size:12px}
+
+/* ── FORM ── */
+.form-header{background:#fff;border-bottom:1px solid var(--border);flex-shrink:0}
+.form-top{display:flex;align-items:center;gap:.75rem;padding:.625rem 1rem}
+.back-btn{width:36px;height:36px;border:none;background:transparent;color:var(--blue);font-size:22px;cursor:pointer;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.form-title-area{flex:1;min-width:0}
+.form-type-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3)}
+.form-num-lbl{font-size:13px;font-weight:700;font-family:monospace}
+.save-top-btn{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0}
+
+/* ── SECTION TABS ── */
+.stabs{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 .75rem;border-bottom:2px solid var(--border)}
+.stabs::-webkit-scrollbar{display:none}
+.stab{padding:10px 14px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--ink3);flex-shrink:0;transition:all .15s}
+.stab.on{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ── FORM SCROLL ── */
+.form-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem 1rem 2rem}
+.fsec{display:none}.fsec.on{display:block}
+
+/* ── FIELDS ── */
+.sec-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);padding:.875rem 0 .625rem;display:flex;align-items:center;gap:.5rem}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-sub{font-size:12px;font-weight:700;color:var(--ink2);margin:.625rem 0 .375rem}
+.f{margin-bottom:.75rem}
+.f label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;border:1.5px solid var(--border2);border-radius:8px;padding:11px 12px;font-size:15px;color:var(--ink);background:#fff;outline:none;-webkit-appearance:none;transition:border-color .15s}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.09)}
+.f textarea{min-height:80px;resize:none;line-height:1.5}
+.f select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7A8D' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.f input[readonly]{background:var(--paper);color:var(--ink3)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.625rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.chips{display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.25rem}
+.rpills{display:flex;flex-wrap:wrap;gap:.375rem}
+.rpill{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border2);background:#fff;cursor:pointer;font-size:13px;font-weight:500;user-select:none;transition:all .15s}
+.rpill.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ── MESURES ── */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.5rem}
+.mbox{background:#fff;border:1.5px solid var(--border2);border-radius:8px;padding:.5rem;text-align:center}
+.mlbl{font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+.minp{width:100%;border:none;border-bottom:1.5px solid var(--border2);background:transparent;font-size:16px;font-weight:700;color:var(--blue-d);text-align:center;padding:2px;outline:none;font-family:monospace}
+.minp:focus{border-bottom-color:var(--blue)}
+.munit{font-size:10px;color:var(--ink3);margin-top:2px}
+
+/* ── STARS ── */
+.eval-row{display:flex;align-items:center;gap:.5rem;padding:.625rem 0;border-bottom:1px solid var(--border)}
+.eval-row:last-child{border-bottom:none}
+.eval-lbl{flex:1;font-size:13px;line-height:1.3}
+.stars{display:flex;gap:3px}
+.star{width:30px;height:30px;border:1.5px solid var(--border2);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff;color:#ccc;transition:all .15s}
+.star.on{background:var(--orange);border-color:var(--orange);color:#fff}
+
+/* ── SIGNATURE ── */
+.sig-box{border:2px dashed var(--border2);border-radius:10px;background:#FAFBFC;overflow:hidden;position:relative;touch-action:none;cursor:pointer}
+.sig-box canvas{display:block;width:100%;height:100px}
+.sig-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;gap:3px}
+.sig-ph span{font-size:26px}
+.sig-ph p{font-size:12px;color:var(--ink3)}
+.sig-box.signed .sig-ph{opacity:0}
+.sig-clr{position:absolute;top:6px;right:6px;background:#fff;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;z-index:5}
+
+/* ── NOTICE ── */
+.notice{padding:.75rem 1rem;border-radius:8px;font-size:13px;margin:.5rem 0;display:flex;gap:.5rem;align-items:flex-start;line-height:1.5}
+.n-info{background:var(--blue-l);color:var(--blue-d)}
+.n-ok{background:var(--green-l);color:var(--green)}
+
+/* ── BOTTOM BAR ── */
+.form-bottom{background:#fff;border-top:1px solid var(--border);padding:.75rem 1rem;padding-bottom:calc(.75rem + env(safe-area-inset-bottom));display:flex;gap:.5rem;flex-shrink:0}
+.fbtn{flex:1;padding:13px;font-size:14px;font-weight:600;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.375rem}
+.fb-save{background:var(--blue);color:#fff}
+.fb-pdf{background:var(--red);color:#fff}
+.fb-mail{background:var(--teal);color:#fff}
+
+/* ── MODAL ── */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end}
+.mbg.on{display:flex}
+.msheet{background:#fff;border-radius:16px 16px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:0 1.25rem calc(1.25rem + env(safe-area-inset-bottom))}
+.mhandle{width:40px;height:4px;border-radius:2px;background:var(--border2);margin:.75rem auto 1rem}
+.mtitle{font-size:17px;font-weight:700;margin-bottom:1.25rem}
+.mbtns{display:flex;gap:.5rem;margin-top:1.25rem}
+.mbtns button{flex:1;padding:13px;font-size:14px;font-weight:600;border:none;border-radius:9px;cursor:pointer}
+.mbtn-x{background:var(--paper);color:var(--ink)}
+.mbtn-ok{background:var(--blue);color:#fff}
+
+/* ── INSTALL BANNER ── */
+.ibanner{background:var(--blue);color:#fff;padding:.75rem 1rem;display:none;align-items:center;gap:.625rem;flex-shrink:0}
+.ibanner.on{display:flex}
+
+@media print{
+  .nav,.form-header,.form-bottom,.stabs,.fab,.mbg,.ibanner{display:none!important}
+  #view-form{display:flex!important}
+  .fsec{display:block!important}
+  .form-scroll{overflow:visible;height:auto}
+  body,html{overflow:visible;height:auto;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="5" fill="#1A56DB"/><path d="M6 11h10M11 6v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+    Meditec <span class="nav-pill">Rapports</span>
+  </div>
+  <a href="https://78500meditec.github.io/psdm/" class="nav-link">← PSDM</a>
+  <button class="nav-btn" onclick="openNewModal()" title="Nouveau rapport">＋</button>
+</div>
+
+<div class="ibanner" id="iban">
+  <div style="flex:1;font-size:13px">📲 Installer l'app sur l'écran d'accueil</div>
+  <button style="background:#fff;color:var(--blue);border:none;border-radius:7px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer" onclick="installPWA()">Installer</button>
+  <button style="background:transparent;border:none;color:rgba(255,255,255,.7);font-size:20px;cursor:pointer;padding:0 4px" onclick="this.closest('.ibanner').classList.remove('on')">×</button>
+</div>
+
+<div class="app">
+
+  <!-- ══ VUE LISTE ══ -->
+  <div id="view-list">
+    <div class="list-head">
+      <div class="list-head-row">
+        <div class="list-title">Mes rapports</div>
+        <span id="rcount" style="font-size:12px;color:var(--ink3)"></span>
+      </div>
+      <div class="filter-row" id="filter-row">
+        <div class="chip sm on" onclick="setFilter('all',this)">Tous</div>
+        <div class="chip sm" onclick="setFilter('handi',this)">♿ Handicap</div>
+        <div class="chip sm" onclick="setFilter('mad',this)">🏠 MAD</div>
+        <div class="chip sm" onclick="setFilter('collectivite',this)">🏢 Collectivité</div>
+      </div>
+    </div>
+    <div class="list-body" id="list-body"></div>
+    <button class="fab" onclick="openNewModal()">＋</button>
+  </div>
+
+  <!-- ══ VUE FORMULAIRE ══ -->
+  <div id="view-form">
+    <div class="form-header">
+      <div class="form-top">
+        <button class="back-btn" onclick="goBack()">‹</button>
+        <div class="form-title-area">
+          <div class="form-type-lbl" id="ft-type"></div>
+          <div class="form-num-lbl" id="ft-num"></div>
+        </div>
+        <button class="save-top-btn" onclick="doSave(this)">💾 Sauver</button>
+      </div>
+      <div class="stabs" id="stabs"></div>
+    </div>
+    <div class="form-scroll" id="form-scroll"></div>
+    <div class="form-bottom">
+      <button class="fbtn fb-pdf" onclick="exportPDF()">🖨️ Imprimer / PDF</button>
+      <button class="fbtn fb-save" onclick="doSave(this)">💾 Sauvegarder</button>
+      <button class="fbtn fb-mail" onclick="openMailModal()">📧 Envoyer</button>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<!-- ══ MODAL NOUVEAU ══ -->
+<div class="mbg" id="m-new">
+<div class="msheet">
+  <div class="mhandle"></div>
+  <div class="mtitle">Nouveau rapport de visite</div>
+
+  <div class="sec-sub">Type de visite</div>
+  <div class="rpills" id="mt-types">
+    <div class="rpill on" data-v="handi">♿ Handicap FRM</div>
+    <div class="rpill" data-v="mad">🏠 MAD</div>
+    <div class="rpill" data-v="collectivite">🏢 Collectivité</div>
+  </div>
+
+  <div class="sec-sub" style="margin-top:.75rem">Nature du rapport</div>
+  <div class="rpills" id="mt-natures">
+    <div class="rpill on" data-v="eval">📝 Évaluation</div>
+    <div class="rpill" data-v="visite">🔍 Visite / Essai</div>
+    <div class="rpill" data-v="livraison">📦 Livraison</div>
+  </div>
+
+  <div class="g2" style="margin-top:.875rem">
+    <div class="f"><label>Technicien</label><input id="m-tech" placeholder="Prénom Nom" autocomplete="name"></div>
+    <div class="f"><label>Date</label><input id="m-date" type="date"></div>
+  </div>
+  <div class="f" id="m-pat-wrap">
+    <label>Patient / Bénéficiaire</label>
+    <input id="m-pat" placeholder="NOM Prénom" autocomplete="off">
+  </div>
+  <div class="f" id="m-etab-wrap" style="display:none">
+    <label>Établissement</label>
+    <input id="m-etab" placeholder="Nom établissement">
+  </div>
+
+  <div class="mbtns">
+    <button class="mbtn-x" onclick="closeM('m-new')">Annuler</button>
+    <button class="mbtn-ok" onclick="createFromModal()">Créer le rapport →</button>
+  </div>
+</div>
+</div>
+
+<!-- ══ MODAL MAIL ══ -->
+<div class="mbg" id="m-mail">
+<div class="msheet">
+  <div class="mhandle"></div>
+  <div class="mtitle">📧 Envoyer le rapport</div>
+  <div class="f"><label>Destinataire</label><input id="mail-to" type="email" inputmode="email" placeholder="medecin@cabinet.fr"></div>
+  <div class="f"><label>CC (optionnel)</label><input id="mail-cc" type="email" inputmode="email"></div>
+  <div class="f"><label>Message</label><textarea id="mail-msg" rows="3" placeholder="Bonjour, veuillez trouver ci-joint…"></textarea></div>
+  <div class="notice n-info">💡 Le rapport complet est inclus dans le corps du mail. Pour joindre un PDF : cliquez 📄 PDF → Imprimer → Enregistrer en PDF, puis joignez-le manuellement.</div>
+  <div class="mbtns">
+    <button class="mbtn-x" onclick="closeM('m-mail')">Annuler</button>
+    <button class="mbtn-ok" onclick="doMail()">Ouvrir Mail →</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DONNÉES
+// ═══════════════════════════════════════
+let reports = [];
+let cid = null;
+let cfilter = 'all';
+let deferredInstall = null;
+const SKEY = 'md_rv6';
+
+try { reports = JSON.parse(localStorage.getItem(SKEY) || '[]'); } catch(e) {}
+function persist() { try { localStorage.setItem(SKEY, JSON.stringify(reports)); } catch(e) {} }
+function today() { return new Date().toISOString().split('T')[0]; }
+function fdate(s) { return s ? new Date(s + 'T12:00').toLocaleDateString('fr-FR') : '—'; }
+function genNum(t) {
+  const p = {handi:'FRM', mad:'MAD', collectivite:'COL'}[t] || 'RPT';
+  const d = new Date();
+  return p + '-' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '-' + String(reports.length+1).padStart(3,'0');
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION VUES
+// ═══════════════════════════════════════
+function showList() {
+  document.getElementById('view-list').style.display = 'flex';
+  document.getElementById('view-form').style.display = 'none';
+}
+function showForm() {
+  document.getElementById('view-list').style.display = 'none';
+  document.getElementById('view-form').style.display = 'flex';
+}
+function goBack() {
+  saveReport();
+  showList();
+  renderList();
+}
+
+// ═══════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════
+function openM(id) { document.getElementById(id).classList.add('on'); }
+function closeM(id) { document.getElementById(id).classList.remove('on'); }
+
+function openNewModal() {
+  document.getElementById('m-date').value = today();
+  document.getElementById('m-pat').value = '';
+  document.getElementById('m-etab').value = '';
+  document.getElementById('m-tech').value = reports.length ? (reports[0].tech || '') : '';
+  // reset pills
+  document.querySelectorAll('#mt-types .rpill').forEach((b,i) => {
+    b.classList.toggle('on', i === 0);
+    b.onclick = () => {
+      document.querySelectorAll('#mt-types .rpill').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      const isColl = b.dataset.v === 'collectivite';
+      document.getElementById('m-pat-wrap').style.display = isColl ? 'none' : 'block';
+      document.getElementById('m-etab-wrap').style.display = isColl ? 'block' : 'none';
+    };
+  });
+  document.querySelectorAll('#mt-natures .rpill').forEach((b,i) => {
+    b.classList.toggle('on', i === 0);
+    b.onclick = () => { document.querySelectorAll('#mt-natures .rpill').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+  });
+  document.getElementById('m-pat-wrap').style.display = 'block';
+  document.getElementById('m-etab-wrap').style.display = 'none';
+  openM('m-new');
+}
+
+function createFromModal() {
+  var selType = document.querySelector('#mt-types .on'); var type = selType ? selType.dataset.v : 'handi';
+  var selNat = document.querySelector('#mt-natures .on'); var nature = selNat ? selNat.dataset.v : 'eval';
+  const tech   = document.getElementById('m-tech').value.trim();
+  const date   = document.getElementById('m-date').value || today();
+  const patient = document.getElementById('m-pat').value.trim();
+  const etab   = document.getElementById('m-etab').value.trim();
+  closeM('m-new');
+  const r = {
+    id: Date.now(), type, nature,
+    num: genNum(type), tech, date,
+    patient, etab, data: {}, _stars: {},
+    createdAt: new Date().toISOString()
+  };
+  reports.unshift(r);
+  persist();
+  cid = r.id;
+  renderForm(r);
+  showForm();
+}
+
+// ═══════════════════════════════════════
+// LISTE
+// ═══════════════════════════════════════
+const TM = {
+  handi:        { icon:'♿', label:'Handicap',     bc:'b-handi', bg:'#EDE7F6' },
+  mad:          { icon:'🏠', label:'MAD',          bc:'b-mad',   bg:'#EBF2FF' },
+  collectivite: { icon:'🏢', label:'Collectivité', bc:'b-coll',  bg:'#D1F2EB' },
+};
+const NL = { eval:'Évaluation', visite:'Visite/Essai', livraison:'Livraison' };
+
+function setFilter(f, el) {
+  cfilter = f;
+  document.querySelectorAll('#filter-row .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderList();
+}
+
+function renderList() {
+  const list = cfilter === 'all' ? reports : reports.filter(r => r.type === cfilter);
+  document.getElementById('rcount').textContent = list.length + ' rapport' + (list.length > 1 ? 's' : '');
+  const el = document.getElementById('list-body');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div style="font-size:52px;margin-bottom:.75rem">📋</div><p style="font-weight:700;font-size:16px;color:var(--ink);margin-bottom:.25rem">Aucun rapport</p><p>Appuyez sur + pour créer votre premier rapport</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(r => {
+    const m = TM[r.type] || TM.handi;
+    const name = r.patient || r.etab || 'Nouveau rapport';
+    return '<div class="rcard" onclick="openReport(' + r.id + ')">' +
+      '<div class="rcard-ico" style="background:' + m.bg + '">' + m.icon + '</div>' +
+      '<div class="rcard-body">' +
+        '<div class="rcard-name">' + escH(name) + '</div>' +
+        '<div class="rcard-meta">' +
+          '<span class="badge ' + m.bc + '">' + m.label + '</span>' +
+          '<span class="badge b-nat">' + (NL[r.nature] || '—') + '</span>' +
+          '<span>' + fdate(r.date) + '</span>' +
+          '<span style="font-family:monospace;font-size:10px">' + r.num + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="rcard-del" onclick="delReport(event,' + r.id + ')">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function openReport(id) {
+  cid = id;
+  const r = reports.find(x => x.id === id);
+  if (r) { renderForm(r); showForm(); }
+}
+
+function delReport(e, id) {
+  e.stopPropagation();
+  if (!confirm('Supprimer ce rapport ?')) return;
+  reports = reports.filter(x => x.id !== id);
+  persist();
+  renderList();
+}
+
+// ═══════════════════════════════════════
+// FORMULAIRE
+// ═══════════════════════════════════════
+const SECS = {
+  handi:        ['Identification','Patient & Admin','Sécu. Sociale','Pathologie','Environnement','Matériel FRM','Essai','Préconisation','Signatures'],
+  mad:          ['Identification','Patient & Admin','Sécu. Sociale','Pathologie','Environnement','Vie quotidienne','Matériel MAD','Préconisation','Signatures'],
+  collectivite: ['Identification','Établissement','Commercial','Besoins','Préconisation','Signatures'],
+};
+
+function renderForm(r) {
+  const m = TM[r.type] || TM.handi;
+  document.getElementById('ft-type').textContent = m.label + ' — ' + (NL[r.nature] || '');
+  document.getElementById('ft-num').textContent  = r.num;
+  const secs = SECS[r.type] || SECS.handi;
+  // Tabs
+  document.getElementById('stabs').innerHTML = secs.map((s, i) =>
+    '<div class="stab ' + (i===0?'on':'') + '" onclick="switchTab(' + i + ',this)">' + s + '</div>'
+  ).join('');
+  // Sections
+  document.getElementById('form-scroll').innerHTML = secs.map((s, i) =>
+    '<div class="fsec ' + (i===0?'on':'') + '" id="fs-' + i + '">' + buildSec(s, r) + '</div>'
+  ).join('');
+  initChips();
+  initSigs();
+  restoreData(r);
+  // Always set num (readonly) and date explicitly after build
+  var numEl = document.querySelector('#form-scroll input[name="num"]');
+  if (numEl) numEl.value = r.num;
+  var dateEl = document.querySelector('#form-scroll input[name="date"]');
+  if (dateEl && !dateEl.value) dateEl.value = r.date || '';
+  var techEl = document.querySelector('#form-scroll input[name="tech"]');
+  if (techEl && !techEl.value) techEl.value = r.tech || '';
+}
+
+function switchTab(i, el) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.fsec').forEach(s => s.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('fs-' + i).classList.add('on');
+  document.getElementById('form-scroll').scrollTop = 0;
+}
+
+// ═══════════════════════════════════════
+// BUILDERS HTML SECTIONS
+// ═══════════════════════════════════════
+function f(label,name,type,ph,extra){
+  return '<div class="f"><label>' + label + '</label><input name="' + name + '" type="' + (type||'text') + '" placeholder="' + (ph||'') + '" ' + (extra||'') + '></div>';
+}
+function fsel(label,name,opts){
+  return '<div class="f"><label>' + label + '</label><select name="' + name + '">' + opts.map(o=>'<option value="' + o + '">' + o + '</option>').join('') + '</select></div>';
+}
+function fta(label,name,ph){
+  return '<div class="f"><label>' + label + '</label><textarea name="' + name + '" placeholder="' + (ph||'') + '"></textarea></div>';
+}
+function chps(label,name,items){
+  return '<div class="f">' + (label?'<label>' + label + '</label>':'') +
+    '<div class="chips">' +
+    items.map(c => '<div class="chip" data-n="' + name + '" data-v="' + escH(c) + '">' + escH(c) + '</div>').join('') +
+    '</div></div>';
+}
+function rpls(label,name,items){
+  return '<div class="sec-sub">' + label + '</div><div class="rpills" data-rgroup="' + name + '">' +
+    items.map((v,i) => '<div class="rpill ' + (i===0?'on':'') + '" data-n="' + name + '" data-v="' + escH(v) + '">' + escH(v) + '</div>').join('') +
+    '</div>';
+}
+
+function buildSec(name, r) {
+  switch(name) {
+    case 'Identification':    return secIdent(r);
+    case 'Patient & Admin':   return secPatient(r);
+    case 'Sécu. Sociale':     return secSS(r);
+    case 'Pathologie':        return r.type==='handi' ? secPathoHandi(r) : secPathoMAD(r);
+    case 'Environnement':     return r.type==='handi' ? secEnvHandi(r) : secEnvMAD(r);
+    case 'Vie quotidienne':   return secVieQuot(r);
+    case 'Matériel FRM':      return secMatFRM(r);
+    case 'Matériel MAD':      return secMatMAD(r);
+    case 'Essai':             return secEssai(r);
+    case 'Préconisation':     return secPreco(r);
+    case 'Signatures':        return secSig(r);
+    case 'Établissement':     return secEtab(r);
+    case 'Commercial':        return secCommercial(r);
+    case 'Besoins':           return secBesoins(r);
+    default: return '<div class="notice n-info">Section en cours de construction.</div>';
+  }
+}
+
+function secIdent(r) {
+  // Auto-génère un N° d'ordonnance si vide
+  var ordo = r.data && r.data.n_ordo ? r.data.n_ordo : genOrdo();
+  return '<div class="sec-title">Identification</div>' +
+    '<div class="g2">' + f('N° Rapport','num','text','','readonly') + f('Date de visite','date','date') + '</div>' +
+    '<div class="g2">' + f('Technicien / Commercial','tech','text','Prénom Nom') + f('Prescripteur','prescripteur','text','Dr. Nom — Spécialité') + '</div>' +
+    '<div class="g2"><div class="f"><label>N° Ordonnance</label><input name="n_ordo" type="text" placeholder="ex: ORD-2026-0001" value="' + ordo + '" style="font-family:monospace"></div>' + f('Date ordonnance','date_ordo','date') + '</div>' +
+    fta('Motif de la visite','motif_visite','Contexte, origine de la demande (médecin, MDPH, famille, HAD…)');
+}
+
+function genOrdo() {
+  var d = new Date();
+  // Count total ordos already in reports to avoid duplicates
+  var count = 0;
+  reports.forEach(function(r) { if (r.data && r.data.n_ordo) count++; });
+  var n = (count + 1).toString().padStart(4, '0');
+  return 'ORD-' + d.getFullYear() + '-' + n;
+}
+
+function secPatient(r) {
+  return '<div class="sec-title">Patient / Bénéficiaire</div>' +
+    '<div class="g2">' + f('Nom','nom','text','NOM') + f('Prénom','prenom','text','Prénom') + '</div>' +
+    '<div class="g2">' + f('Date de naissance','ddn','date') + f('Lieu de naissance','lieu_naissance','text','Ville') + '</div>' +
+    f('Adresse','adresse','text','N°, rue') +
+    '<div class="g2">' + f('Code postal','cp','text','00000','inputmode="numeric"') + f('Ville','ville','text','Ville') + '</div>' +
+    '<div class="g2">' + f('Tél. domicile','tel_dom','tel','01 XX XX XX XX') + f('Tél. mobile','tel_mob','tel','06 XX XX XX XX') + '</div>' +
+    f('Email','email','email','patient@mail.fr') +
+    '<div class="sec-sub">Contact / Aidant principal</div>' +
+    '<div class="g2">' + f('Nom & prénom','aidant_nom','text','Nom — Lien de parenté') + f('Téléphone','aidant_tel','tel','06 XX XX XX XX') + '</div>' +
+    f('Médecin traitant','medecin','text','Dr. Nom — Cabinet — Ville') +
+    '<div class="g2">' + f('Centre de rééducation / Suivi','centre','text') + f('Médecin spécialiste','specialiste','text','Dr. Nom — Spécialité') + '</div>';
+}
+
+function secSS(r) {
+  return '<div class="sec-title">Couverture sociale</div>' +
+    '<div class="sec-sub">Sécurité Sociale</div>' +
+    '<div class="g2">' + f('N° Sécurité Sociale','nss','text','0 00 00 000 000 00','inputmode="numeric" style="font-family:monospace"') + f('Caisse SS (CPAM)','cpam','text','ex: CPAM 78') + '</div>' +
+    '<div class="g2">' + fsel('Taux remboursement SS','taux_ss',['100% (ALD)','80%','65%','Non renseigné']) + fsel('ALD','ald',['Oui','Non','En cours']) + '</div>' +
+    f('N° ALD / Exonération','n_ald','text','','style="font-family:monospace"') +
+    '<div class="sec-sub" style="margin-top:.5rem">Mutuelle / Complémentaire</div>' +
+    '<div class="g2">' + f('Nom de la mutuelle','mutuelle','text','ex: MGEN, Harmonie…') + f('N° Adhérent','n_mutuelle','text','','style="font-family:monospace"') + '</div>' +
+    '<div class="g2">' + f('Tél. mutuelle','tel_mutuelle','tel') + fsel('Prise en charge mutuelle','pc_mutuelle',['Accord préalable nécessaire','Prise en charge directe','Remboursement différé','Non prise en charge']) + '</div>' +
+    '<div class="sec-sub">MDPH / PCH (si applicable)</div>' +
+    '<div class="g2">' + fsel('Dossier MDPH','mdph',['Non concerné','Dossier en cours','Accord PCH obtenu','Refus']) + f('Montant PCH accordé','montant_pch','text','€/mois') + '</div>' +
+    f('Reste à charge patient estimé','rac','text','0,00 €');
+}
+
+function secPathoHandi(r) {
+  return '<div class="sec-title">Pathologie &amp; besoins</div>' +
+    '<div class="g2">' + f('Diagnostic principal','pathologie','text','ex: Paraplégique T6, SEP…') + f('Étiologie','etiologie','text','Traumatique, vasculaire…') + '</div>' +
+    chps('Comorbidités','comorbidites',['Diabète','HTA','Insuffisance cardiaque','BPCO','Obésité','Dépression','Douleurs chroniques','Épilepsie','Troubles cognitifs','Troubles visuels','Escarres']) +
+    f('Autre comorbidité','comorbid_autre','text','Préciser…') +
+    '<div class="sec-sub">Capacités motrices</div>' +
+    '<div class="g2">' + fsel('Membre sup. droit','ms_droit',['Valide','Faiblesse modérée','Faiblesse sévère','Paralysie']) + fsel('Membre sup. gauche','ms_gauche',['Valide','Faiblesse modérée','Faiblesse sévère','Paralysie']) + '</div>' +
+    '<div class="g2">' + fsel('Transferts','transferts',['Autonome','Avec aide humaine','Avec lève-personne','Impossible']) + fsel('Station assise','station_assise',['Stable autonome','Stable avec appui','Instable','Impossible']) + '</div>' +
+    chps('Autonomie de déplacement actuelle','autonomie_dep',['Marche seul','Marche avec aide','FRM manuel','FRM électrique','Dépend d\'autrui','Confiné au lit']) +
+    '<div class="g2">' + f('Poids du patient','poids','text','kg','inputmode="decimal"') + f('IMC / Morphologie','imc','text','ex: Obèse, Svelte…') + '</div>' +
+    fta('Observations cliniques','obs_clinique','Spasticité, douleurs, escarres…');
+}
+
+function secPathoMAD(r) {
+  return '<div class="sec-title">Pathologie &amp; besoins</div>' +
+    '<div class="g2">' + f('Diagnostic principal','pathologie','text','ex: AVC, Parkinson…') + fsel('GIR','gir',['—','GIR 1','GIR 2','GIR 3','GIR 4','GIR 5','GIR 6']) + '</div>' +
+    chps('Comorbidités','comorbidites',['Diabète','HTA','Insuffisance cardiaque','BPCO','Obésité','Troubles cognitifs','Dépression','Douleurs chroniques','Troubles visuels','Chutes répétées','Incontinence']) +
+    '<div class="g2">' + fsel('Durée prévisionnelle','duree',['Court terme','Moyen terme (1–6 mois)','Long terme (>6 mois)','Permanent']) + f('Poids','poids','text','kg','inputmode="decimal"') + '</div>' +
+    fta('Aides humaines en place','aides_humaines','Auxiliaire de vie, infirmier, aide-soignante…') +
+    fta('Matériel déjà en place','mat_existant','Matériel actuel, ancienneté, état…');
+}
+
+function secEnvHandi(r) {
+  return '<div class="sec-title">Environnement &amp; mesures</div>' +
+    rpls('Type de logement','logement',['Maison individuelle','Appartement','EHPAD/Structure','Autre']) +
+    '<div class="g2" style="margin-top:.75rem">' + fsel('Étage','etage',['RDC','1er','2ème','3ème+']) + fsel('Accès étage','acces_etage',['N/A (RDC)','Ascenseur','Monte-escalier','Escalier uniquement']) + '</div>' +
+    '<div class="sec-sub">Largeurs des portes &amp; couloirs</div>' +
+    '<div class="g2">' + f('Porte d\'entrée','lp_entree','text','cm','inputmode="decimal"') + f('Porte WC','lp_wc','text','cm','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Porte chambre','lp_chambre','text','cm','inputmode="decimal"') + f('Porte SDB','lp_sdb','text','cm','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Largeur couloir','larg_couloir','text','cm','inputmode="decimal"') + f('Espace dégagé chambre','espace_chambre','text','cm','inputmode="decimal"') + '</div>' +
+    chps('Contraintes identifiées','contraintes',['Seuil de porte','Marche isolée','Couloir trop étroit','SDB inadaptée','WC inaccessible','Sol glissant','Rampe absente','Parking PMR absent']) +
+    fta('Observations environnement','obs_env') +
+    '<div class="sec-sub" style="margin-top:.5rem">Mesures anthropométriques</div>' +
+    '<div class="mgrid">' +
+    [['poids','Poids','kg'],['taille','Taille','cm'],['larg_bassin','Bassin','cm'],['larg_epaules','Épaules','cm'],['prof_assise','Prof. assise','cm'],['haut_assise','Haut. assise','cm'],['haut_dossier','Haut. dossier','cm'],['long_jambe','Long. jambe','cm'],['tour_thorax','Thorax','cm'],['long_bras','Long. bras','cm']].map(([n,l,u]) =>
+      '<div class="mbox"><div class="mlbl">' + l + '</div><input class="minp" name="' + n + '" placeholder="—" inputmode="decimal"><div class="munit">' + u + '</div></div>'
+    ).join('') + '</div>' +
+    chps('Usage prévu du fauteuil','usage_frm',['Intérieur','Extérieur','Mixte','Transports en commun','Véhicule personnel','Travail/études','Sport/loisirs']) +
+    '<div class="g2">' + f('Autonomie souhaitée','autonomie_souh','text','km/jour','inputmode="decimal"') + fsel('Chargement véhicule','chargement_veh',['Non concerné','Manuel','Avec aide','Dispositif de chargement']) + '</div>';
+}
+
+function secEnvMAD(r) {
+  return '<div class="sec-title">Environnement &amp; habitat</div>' +
+    rpls('Type de logement','logement',['Maison individuelle','Appartement','RDC','Résidence senior','Autre']) +
+    '<div class="g2" style="margin-top:.75rem">' + fsel('Étage','etage',['RDC','1er','2ème','3ème+']) + fsel('Accès étage','acces_etage',['N/A','Ascenseur','Monte-escalier','Escalier uniquement']) + '</div>' +
+    '<div class="g2">' + f('Porte entrée','lp_entree','text','cm','inputmode="decimal"') + f('Porte chambre','lp_chambre','text','cm','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Porte SDB/WC','lp_sdb','text','cm','inputmode="decimal"') + f('Largeur couloir','larg_couloir','text','cm','inputmode="decimal"') + '</div>' +
+    chps('Contraintes','contraintes',['Seuil de porte','Marche isolée','Couloir étroit','SDB inadaptée','WC inaccessible','Sol glissant','Escalier sans rampe','Ascenseur trop petit']) +
+    fta('Observations','obs_env');
+}
+
+function secVieQuot(r) {
+  return '<div class="sec-title">Besoins vie quotidienne</div>' +
+    chps('Mobilité','mobilite',['Se lever/s\'asseoir seul','Marcher seul','Marcher avec aide','Déambulateur existant','Risque de chutes','Chutes récentes']) +
+    chps('Salle de bain / Hygiène','sdb',['Bain existant','Douche italienne','Douche avec bac','Siège de bain nécessaire','Fauteuil de douche nécessaire','Barre d\'appui WC','Barre appui SDB','WC surélevé','Aide pour toilette']) +
+    chps('Lit','besoins_lit',['Lit standard existant','Lit médicalisé nécessaire','Potence de lit','Barrières de lit','Matelas anti-escarre','Table de lit','Aide pour transfert lit']) +
+    chps('Escaliers &amp; accès','acces_besoins',['Rampe d\'appui nécessaire','Monte-escalier électrique','Rampe amovible','Accès extérieur à adapter']) +
+    chps('Respiration &amp; soins','resp',['Concentrateur O2 fixe','Concentrateur O2 portable','Bouteille O2','Aérosol/Nébuliseur','Aspirateur de mucosités','Assistance ventilatoire']) +
+    fta('Autres besoins','autres_besoins','Repas, médicaments, communication…');
+}
+
+function secNomLPP() {
+  function grp(titre, items, n) {
+    return '<div style="margin-bottom:.625rem">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);' +
+      'background:var(--paper);border-radius:6px;padding:4px 10px;margin-bottom:.375rem;display:inline-block">' + titre + '</div>' +
+      '<div class="chips">' +
+      items.map(function(it) {
+        return '<div class="chip" data-n="' + n + '" data-v="' + escH(it) + '">' + escH(it) + '</div>';
+      }).join('') +
+      '</div></div>';
+  }
+  return '<div class="f"><label>Sous-type — Nomenclature LPP</label>' +
+    grp('FRM · Fauteuil Roulant Manuel', [
+      'FRM — De base / standard',
+      'FRM — Léger',
+      'FRM — Grande largeur / bariatrique',
+      'FRM — Pédiatrique',
+      'FRM — De positionnement (coquille)'
+    ], 'sous_type_frm') +
+    grp('FMP · Fauteuil à Main Propulsion (autopropulsé)', [
+      'FMP — Standard autopropulsé',
+      'FMP — Léger renforcé'
+    ], 'sous_type_frm') +
+    grp('FMPR · Fauteuil Manuel à Propulsion Renforcée (actif / ultraléger)', [
+      'FMPR — Actif / sport',
+      'FMPR — Ultra-léger carbone/titane',
+      'FMPR — Pédiatrique actif'
+    ], 'sous_type_frm') +
+    grp('FRE · Fauteuil Roulant Électrique', [
+      'FRE — Joystick standard',
+      'FRE — Joystick compact / mini-joystick',
+      'FRE — Commande mentonnière',
+      'FRE — Soufflage / aspiration (sip & puff)',
+      'FRE — Pilotage oculaire',
+      'FRE — Pilotage au front / tête',
+      'FRE — Commande scanner',
+      'FRE — De positionnement (FREP)',
+      'FRE — Intérieur compact',
+      'FRE — Tout terrain / extérieur'
+    ], 'sous_type_frm') +
+    grp('Scooter PMR', [
+      'Scooter 3 roues — intérieur/trottoir',
+      'Scooter 4 roues — extérieur/longues distances'
+    ], 'sous_type_frm') +
+    grp('Autres', [
+      'Fauteuil de douche roulant',
+      'Verticalisateur manuel',
+      'Verticalisateur électrique'
+    ], 'sous_type_frm') +
+  '</div>';
+}
+
+function secMatFRM(r) {
+  return '<div class="sec-title">Matériel — ' + (NL[r.nature]||'') + '</div>' +
+    rpls('Type d\'acquisition','acquisition',['Nouvelle acquisition','Renouvellement','Remplacement (panne/destruction)','Essai / Prêt','Modification / Adaptation']) +
+    '<div class="sec-sub" style="margin-top:.75rem">Catégorie LPP</div>' +
+    '<div class="rpills" data-rgroup="cat_frm">' +
+    '<div class="rpill on" data-n="cat_frm" data-v="FRM">🦽 FRM</div>' +
+    '<div class="rpill" data-n="cat_frm" data-v="FMP">🦽 FMP</div>' +
+    '<div class="rpill" data-n="cat_frm" data-v="FMPR">🦽 FMPR</div>' +
+    '<div class="rpill" data-n="cat_frm" data-v="FRE">⚡ FRE</div>' +
+    '<div class="rpill" data-n="cat_frm" data-v="Scooter PMR">🛺 Scooter PMR</div>' +
+    '<div class="rpill" data-n="cat_frm" data-v="Verticalisateur">🧍 Verticalisateur</div>' +
+    '</div>' +
+    '<div class="notice n-info" style="margin-top:.5rem;font-size:12px">🦽 FRM = Fauteuil Roulant Manuel · FMP = Fauteuil à Motricité Partielle · FMPR = Fauteuil Manuel à Propulsion Réglable (actif/ultraléger) · FRE = Fauteuil Roulant Électrique</div>' +
+    '<div class="sec-sub" style="margin-top:.75rem">Sous-type / Description</div>' +
+    '<div id="sous-type-frm-wrap"><div class="chips">' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRM standard (dossier fixe)">FRM standard (dossier fixe)</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRM standard (dossier rabattable)">FRM standard (dossier rabattable)</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRM grande largeur">FRM grande largeur</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRM pédiatrique">FRM pédiatrique</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FMP autopropulsé">FMP autopropulsé</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FMP poussé par tierce personne">FMP poussé par tierce personne</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FMPR actif">FMPR actif</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FMPR ultraléger (&lt;10 kg)">FMPR ultraléger (&lt;10 kg)</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Joystick standard">FRE Joystick standard</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Joystick compact">FRE Joystick compact</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Mentonnière">FRE Mentonnière</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Soufflage / Aspiration">FRE Soufflage / Aspiration</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Pilotage tête">FRE Pilotage tête</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="FRE Pilotage oculaire">FRE Pilotage oculaire</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="Scooter 3 roues">Scooter 3 roues</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="Scooter 4 roues">Scooter 4 roues</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="Fauteuil de douche roulant">Fauteuil de douche roulant</div>' +
+    '<div class="chip" data-n="sous_type_frm" data-v="Fauteuil coquille / positioning">Fauteuil coquille / positioning</div>' +
+    '</div></div>' +
+    '<div class="sec-sub" style="margin-top:.75rem">Référence LPP</div>' +
+    '<div class="g2">' +
+    '<div class="f"><label>Code LPP</label><select name="code_lpp">' +
+    '<option value="">— Sélectionner —</option>' +
+    '<option value="2181053">2181053 — FRM dossier fixe (base)</option>' +
+    '<option value="2181077">2181077 — FRM dossier rabattable</option>' +
+    '<option value="2181064">2181064 — FRM grande largeur</option>' +
+    '<option value="2181091">2181091 — FRM pédiatrique</option>' +
+    '<option value="2182576">2182576 — FMP autopropulsé</option>' +
+    '<option value="2182583">2182583 — FMP tierce personne</option>' +
+    '<option value="2183591">2183591 — FMPR actif</option>' +
+    '<option value="2183608">2183608 — FMPR ultraléger</option>' +
+    '<option value="2184615">2184615 — FRE Joystick</option>' +
+    '<option value="2184629">2184629 — FRE Mentonnière</option>' +
+    '<option value="2184636">2184636 — FRE Soufflage/Aspiration</option>' +
+    '<option value="2184643">2184643 — FRE Pilotage tête/oculaire</option>' +
+    '<option value="2185652">2185652 — Scooter PMR 3 roues</option>' +
+    '<option value="2185669">2185669 — Scooter PMR 4 roues</option>' +
+    '</select></div>' +
+    f('Réf. LPP (saisie libre)','ref_lpp','text','XXXXXXXXXX','style="font-family:monospace" inputmode="numeric"') +
+    '</div>' +
+    '<div class="sec-sub" style="margin-top:.25rem">Caractéristiques techniques</div>' +
+    '<div class="g2">' + f('Marque / Fabricant','marque','text','Invacare, Sunrise, Permobil…') + f('Modèle exact','modele','text','Action 3 NG, Storm 4…') + '</div>' +
+    '<div class="g2">' + f('N° de série','serie','text','','style="font-family:monospace"') + f('Couleur / Options','couleur_options','text','') + '</div>' +
+    '<div class="g2">' + f('Largeur assise prescrite','mat_larg','text','cm','inputmode="decimal"') + f('Profondeur assise','mat_prof','text','cm','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Hauteur assise','mat_haut','text','cm','inputmode="decimal"') + f('Hauteur dossier','haut_dossier_mat','text','cm','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Poids max supporté','poids_max','text','kg','inputmode="decimal"') + f('Poids du fauteuil','poids_mat','text','kg','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Roues arrière','roues_ar','text','ex: 24\'\'  gonfl.') + f('Roues avant / roulettes','roues_av','text','ex: 8\'\' plein') + '</div>' +
+    '<div class="g2">' + f('Autonomie batterie','autonomie_bat','text','km','inputmode="decimal"') + f('Vitesse max (FRE)','vitesse','text','km/h','inputmode="decimal"') + '</div>' +
+    '<div class="g2">' + f('Prix de vente HT','prix_ht','text','0,00 €','inputmode="decimal"') + fsel('TVA applicable','tva',['5,5% — Matériel médical (standard)','10%','20%','0% — Exonéré']) + '</div>' +
+    fta('Options / Accessoires inclus','options','Coussin anti-escarre, appuis-tête, ceinture, repose-pieds latéraux, tablette, sacoche, protège-roues, chargeur…') +
+    fta('Justification du choix / Observations','obs_mat','Pourquoi ce matériel, alternatives envisagées, contraintes particulières…');
+}
+
+
+function secMatMAD(r) {
+  const mats = ['Lit médicalisé 1 moteur','Lit médicalisé 2 moteurs','Lit médicalisé 3 moteurs','Potence de lit','Barrières de lit','Matelas anti-escarre mousse','Matelas alternating électrique','Coussin anti-escarre','Lève-personne vertical','Lève-personne sur rail','Verticalisateur','Déambulateur 2 roues','Déambulateur 4 roues (rollator)','Béquilles','Canne simple','Canne tripode/quadripode','Fauteuil de douche à dossier','Fauteuil de douche roulant','Siège de bain','WC surélevé avec accoudoirs','Barre d\'appui murale','Rampe d\'accès amovible','Monte-escalier droit','Monte-escalier courbe','Concentrateur O2 fixe','Concentrateur O2 portable','Aérosol nébuliseur','Aspirateur de mucosités','Table de lit réglable','Fauteuil gériatrique'];
+  return '<div class="sec-title">Matériel MAD — ' + (NL[r.nature]||'') + '</div>' +
+    chps('Sélection du matériel','materiels_mad', mats) +
+    '<div class="sec-sub" style="margin-top:.75rem">Détail matériel principal</div>' +
+    '<div class="g2">' + f('Marque / Fabricant','marque','text') + f('Modèle','modele','text') + '</div>' +
+    '<div class="g2">' + f('Réf. LPP','ref_lpp','text','','style="font-family:monospace" inputmode="numeric"') + f('N° de série','serie','text','','style="font-family:monospace"') + '</div>' +
+    '<div class="g2">' + f('Prix HT','prix_ht','text','0,00 €','inputmode="decimal"') + fsel('TVA','tva',['5,5%','10%','20%','Exonéré']) + '</div>' +
+    fta('Observations / Justification','obs_mat');
+}
+
+function secEssai(r) {
+  const items = r.type === 'handi'
+    ? ['Facilité de conduite/propulsion','Confort de l\'assise','Stabilité','Franchissement d\'obstacles','Maniabilité intérieur','Utilisation extérieur','Pliage / transport','Compatibilité domicile','Autonomie batterie (FRE)','Satisfaction patient']
+    : ['Facilité d\'utilisation','Confort patient','Sécurité / stabilité','Adaptation domicile','Facilité aidant','Satisfaction globale'];
+  return '<div class="sec-title">Évaluation — Essai matériel</div>' +
+    '<div class="notice n-info">★☆☆☆☆ = insuffisant · ★★★★★ = excellent</div>' +
+    items.map((it,i) =>
+      '<div class="eval-row"><div class="eval-lbl">' + it + '</div>' +
+      '<div class="stars">' +
+      [1,2,3,4,5].map(n => '<div class="star" onclick="starTap(this,' + n + ',' + i + ')" data-row="' + i + '" data-val="' + n + '">★</div>').join('') +
+      '</div></div>'
+    ).join('') +
+    '<div class="g2" style="margin-top:.75rem">' + f('Durée d\'essai','duree_essai','text','ex: 45 min') + f('Lieu d\'essai','lieu_essai','text','Domicile / Showroom…') + '</div>' +
+    fta('Commentaires','obs_essai','Ressenti, difficultés, ajustements effectués…');
+}
+
+function secPreco(r) {
+  return '<div class="sec-title">Préconisation &amp; suites à donner</div>' +
+    '<div class="g2">' + f('Matériel retenu / recommandé','mat_reco','text','Référence exacte') + fsel('Urgence','urgence',['Normal (délai standard)','Prioritaire (sous 48h)','Urgent (sous 24h)','Différé']) + '</div>' +
+    chps('Actions à mener','actions',['Devis à établir','Ordonnance à obtenir','Accord mutuelle en attente','Accord MDPH','Essai complémentaire','Livraison à planifier','Formation patient','Formation aidant','Visite de contrôle','Contacter prescripteur','Travaux d\'adaptation']) +
+    fta('Synthèse &amp; conclusions','synthese','Résumé de la visite, bilan des besoins, recommandations…') +
+    (r.nature === 'livraison'
+      ? '<div class="sec-sub">Informations livraison</div>' +
+        '<div class="g2">' + f('Date de livraison','date_liv','date') + f('Technicien livraison','tech_liv','text') + '</div>' +
+        chps('Vérifications effectuées','verif_liv',['Matériel conforme','N° série vérifié','Test OK','Réglages faits','Patient formé','Aidant formé','Notice remise','RAC expliqué'])
+      : '') +
+    f('Prochain RDV / suivi prévu','prochaine_visite','date');
+}
+
+function secSig(r) {
+  return '<div class="sec-title">Signatures</div>' +
+    '<div class="notice n-ok">✅ Je certifie que les informations sont exactes et que le matériel est adapté aux besoins du bénéficiaire.</div>' +
+    makeSigField('tech', 'Technicien / Commercial', r.tech || '') +
+    makeSigField('pat', 'Patient / Représentant légal', r.patient || r.etab || '') +
+    makeSigField('med', 'Médecin / Prescripteur', '');
+}
+
+function makeSigField(key, label, defaultName) {
+  return '<div class="f"><label>' + label + '</label>' +
+    '<div class="sig-box" id="sw-' + key + '" onclick="initSig(\'' + key + '\')">' +
+    '<canvas id="sc-' + key + '" height="100"></canvas>' +
+    '<div class="sig-ph"><span>✍️</span><p>Toucher pour signer</p></div>' +
+    '<button class="sig-clr" onclick="clrSig(event,\'' + key + '\')">Effacer</button>' +
+    '</div>' +
+    '<div style="margin-top:.375rem">' + f('Nom','sig_' + key + '_nom','text','Prénom Nom') + '</div>' +
+    '</div>';
+}
+
+function secEtab(r) {
+  return '<div class="sec-title">Informations établissement</div>' +
+    f('Nom de l\'établissement','etab','text','EHPAD, MAS, Foyer…') +
+    '<div class="g2">' + fsel('Type d\'établissement','type_etab',['EHPAD','MAS','FAM','Foyer de vie','IME','SSIAD','HAD','Clinique','Autre']) + f('N° FINESS','finess','text','000 000 000') + '</div>' +
+    f('Adresse complète','adresse_etab','text','N°, rue, CP, ville') +
+    '<div class="g2">' + f('Téléphone standard','tel_etab','tel','01 XX XX XX XX') + f('Email','email_etab','email','contact@etab.fr') + '</div>' +
+    '<div class="g2">' + f('Responsable / Directeur','directeur','text','Nom — Fonction') + f('Téléphone direct','tel_dir','tel') + '</div>' +
+    '<div class="g2">' + f('Référent achats / IDE','referent','text','Nom — Fonction') + f('Téléphone référent','tel_referent','tel') + '</div>' +
+    '<div class="g2">' + f('Nombre de lits / places','nb_lits','text','','inputmode="numeric"') + f('Nombre de résidents','nb_residents','text','','inputmode="numeric"') + '</div>' +
+    '<div class="g2">' + fsel('Convention tarifaire','convention',['Non renseigné','Forfait journalier','Prix de journée','Convention tripartite','CPOM','SERAFIN-PH']) + f('Budget annuel matériel estimé','budget_mat','text','€/an') + '</div>';
+}
+
+function secCommercial(r) {
+  return '<div class="sec-title">Analyse commerciale &amp; opportunités</div>' +
+    rpls('Appartient à un groupement ?','groupement_oui',['✅ Oui','❌ Non','❓ NSP']) +
+    '<div class="g2" style="margin-top:.5rem">' + f('Nom du groupement','nom_groupement','text','ex: UniHA, UGAP, Resah…') + f('Contrat en cours jusqu\'au','fin_contrat','date') + '</div>' +
+    chps('Fournisseurs actuels identifiés','concurrents',['Harmonie Médical','Bastide Médical','Orkyn','Santélys','Adair','LVL Médical','Air Liquide Santé','Autre PSDM local','Achat direct','Non renseigné']) +
+    fta('Commentaire concurrence','obs_concurrence','Satisfaction, contrats, prix pratiqués, points faibles…') +
+    chps('Opportunités identifiées','opportunites',['FRM manuels','FRM électriques','Scooters PMR','Lits médicalisés','Lève-personnes','Anti-escarres','Concentrateurs O2','Déambulateurs','Maintenances / SAV','Formation personnel','Appel d\'offres à venir']) +
+    '<div class="g2">' + f('Potentiel estimé (€/an)','potentiel_ca','text','ex: 15 000 €') + fsel('Probabilité conversion','proba',['Faible (<20%)','Modérée (20–50%)','Bonne (50–80%)','Très bonne (>80%)']) + '</div>' +
+    '<div class="g2">' + f('Prochain appel d\'offres','ao_date','date') + fsel('Action prioritaire','action_prio',['Devis à envoyer','RDV de présentation','Essai matériel sur site','Réponse AO','Suivi à 3 mois']) + '</div>' +
+    fta('Notes commerciales','notes_commerciales','Contexte, historique, leviers de décision…');
+}
+
+function secBesoins(r) {
+  return '<div class="sec-title">Besoins &amp; matériel — Collectivité</div>' +
+    chps('Types de matériels concernés','mat_besoins',['FRM manuels','FRM électriques','Scooters','Lits médicalisés','Matelas anti-escarres','Lève-personnes','Fauteuils de douche','Déambulateurs','Concentrateurs O2','Autres']) +
+    '<div class="g2">' + f('Quantité estimée totale','qte_totale','text','Nb d\'unités','inputmode="numeric"') + fsel('Délai souhaité','delai_livraison',['Immédiat','1 à 3 mois','3 à 6 mois','6 à 12 mois','Dans le cadre d\'un AO']) + '</div>' +
+    fta('Détail des besoins','detail_besoins','Ex: 3 FRE pour résidents non autonomes, 5 FRM standard…') +
+    rpls('Contrat de maintenance souhaité ?','maintenance_souh',['✅ Oui','❌ Non','🔄 À évaluer']) +
+    chps('Formation personnel souhaitée ?','formation_souh',['Manipulation FRE','Manipulation lève-personne','Prévention escarres','Transferts patient','Réglages FRM','Entretien matériel']) +
+    fta('Observations','obs_besoins','Spécificités du parc, contraintes techniques…');
+}
+
+// ═══════════════════════════════════════
+// INTERACTIONS CHIPS / PILLS / STARS
+// ═══════════════════════════════════════
+function initChips() {
+  try {
+    document.querySelectorAll('#form-scroll .chip[data-n]').forEach(function(c) {
+      c.addEventListener('click', function() { c.classList.toggle('on'); });
+    });
+    document.querySelectorAll('#form-scroll .rpill[data-n]').forEach(function(p) {
+      p.addEventListener('click', function() {
+        var grp = p.closest('.rpills');
+        if (grp) grp.querySelectorAll('.rpill').forEach(function(x) { x.classList.remove('on'); });
+        p.classList.add('on');
+      });
+    });
+  } catch(e) { console.log('initChips error:', e); }
+}
+
+function starTap(el, val, row) {
+  document.querySelectorAll('.star[data-row="' + row + '"]').forEach((s, i) => s.classList.toggle('on', i < val));
+}
+
+// ═══════════════════════════════════════
+// SIGNATURES
+// ═══════════════════════════════════════
+const SIGS = {};
+function initSigs() { /* signatures init on click */ }
+
+function initSig(key) {
+  const wrap   = document.getElementById('sw-' + key);
+  if (!wrap || SIGS[key]) return;
+  const canvas = document.getElementById('sc-' + key);
+  canvas.width = wrap.offsetWidth || 320;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#0F1923'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  SIGS[key] = { ctx, canvas, wrap };
+  let drawing = false, lx = 0, ly = 0;
+
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const s = e.touches ? e.touches[0] : e;
+    return { x: (s.clientX - r.left) * (canvas.width / r.width), y: (s.clientY - r.top) * (canvas.height / r.height) };
+  }
+  canvas.addEventListener('mousedown',  e => { drawing=true; const p=pos(e); lx=p.x; ly=p.y; wrap.classList.add('signed'); });
+  canvas.addEventListener('mousemove',  e => { if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; });
+  canvas.addEventListener('mouseup',    () => drawing=false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; const p=pos(e); lx=p.x; ly=p.y; wrap.classList.add('signed'); }, {passive:false});
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p.x,p.y); ctx.stroke(); lx=p.x; ly=p.y; }, {passive:false});
+  canvas.addEventListener('touchend',   () => drawing=false);
+}
+
+function clrSig(e, key) {
+  e.stopPropagation();
+  const s = SIGS[key];
+  if (!s) return;
+  s.ctx.clearRect(0, 0, s.canvas.width, s.canvas.height);
+  s.wrap.classList.remove('signed');
+  delete SIGS[key];
+}
+
+// ═══════════════════════════════════════
+// SAUVEGARDE / RESTAURATION
+// ═══════════════════════════════════════
+function collectData() {
+  const d = {};
+  document.querySelectorAll('#form-scroll input, #form-scroll select, #form-scroll textarea').forEach(el => {
+    if (!el.name || el.name === 'num') return;
+    d[el.name] = el.value;
+  });
+  // chips
+  document.querySelectorAll('#form-scroll .chip[data-n].on').forEach(c => {
+    const n = c.dataset.n;
+    if (!d[n]) d[n] = [];
+    if (!Array.isArray(d[n])) d[n] = [d[n]];
+    d[n].push(c.dataset.v);
+  });
+  // rpills
+  document.querySelectorAll('#form-scroll .rpill[data-n].on').forEach(p => {
+    if (p.dataset.n) d[p.dataset.n] = p.dataset.v;
+  });
+  // stars
+  const stars = {};
+  document.querySelectorAll('#form-scroll .star.on').forEach(s => {
+    const row = s.dataset.row;
+    stars[row] = Math.max(stars[row] || 0, parseInt(s.dataset.val));
+  });
+  d._stars = stars;
+  // signatures
+  ['tech','pat','med'].forEach(k => {
+    const s = SIGS[k];
+    if (s && s.wrap.classList.contains('signed')) d['_sig_' + k] = s.canvas.toDataURL();
+  });
+  return d;
+}
+
+function saveReport() {
+  if (!cid) return;
+  const r = reports.find(x => x.id === cid);
+  if (!r) return;
+  r.data = collectData();
+  if (r.data.nom && r.data.prenom) r.patient = r.data.nom + ' ' + r.data.prenom;
+  else if (r.data.patient) r.patient = r.data.patient;
+  if (r.data.etab) r.etab = r.data.etab;
+  if (r.data.date) r.date = r.data.date;
+  if (r.data.tech) r.tech = r.data.tech;
+  persist();
+}
+
+function doSave(btn) {
+  saveReport();
+  renderList();
+  const orig = btn.textContent;
+  btn.textContent = '✓ Sauvegardé';
+  setTimeout(() => btn.textContent = orig, 1500);
+}
+
+function restoreData(r) {
+  if (!r.data || !Object.keys(r.data).length) return;
+  const d = r.data;
+  document.querySelectorAll('#form-scroll input, #form-scroll select, #form-scroll textarea').forEach(el => {
+    if (!el.name) return;
+    const v = d[el.name];
+    if (typeof v === 'string' && v !== '') el.value = v;
+  });
+  document.querySelectorAll('#form-scroll .chip[data-n]').forEach(c => {
+    const arr = d[c.dataset.n];
+    if (Array.isArray(arr) && arr.includes(c.dataset.v)) c.classList.add('on');
+  });
+  document.querySelectorAll('#form-scroll .rpill[data-n]').forEach(p => {
+    if (d[p.dataset.n] === p.dataset.v) p.classList.add('on');
+  });
+  if (d._stars) {
+    Object.entries(d._stars).forEach(([row, val]) => {
+      document.querySelectorAll('.star[data-row="' + row + '"]').forEach((s, i) => s.classList.toggle('on', i < val));
+    });
+  }
+  // signatures
+  ['tech','pat','med'].forEach(k => {
+    const imgData = d['_sig_' + k];
+    if (!imgData) return;
+    setTimeout(() => {
+      const wrap   = document.getElementById('sw-' + k);
+      const canvas = document.getElementById('sc-' + k);
+      if (!wrap || !canvas) return;
+      canvas.width = wrap.offsetWidth || 320;
+      const img = new Image();
+      img.onload = () => {
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        wrap.classList.add('signed');
+        SIGS[k] = { ctx: canvas.getContext('2d'), canvas, wrap };
+      };
+      img.src = imgData;
+    }, 200);
+  });
+}
+
+// ═══════════════════════════════════════
+// EXPORT PDF — impression navigateur
+// ═══════════════════════════════════════
+function exportPDF() {
+  saveReport();
+  var r = reports.find(function(x){ return x.id === cid; });
+  if (!r) return;
+  var d = r.data || {};
+
+  // Build a clean printable page
+  var pat = (d.nom && d.prenom ? d.nom+' '+d.prenom : r.patient || r.etab || '—');
+  var typeLabel = {handi:'Handicap — Fauteuil Roulant / Scooter', mad:'MAD — Maintien à Domicile', collectivite:'Collectivité — EHPAD / MAS'}[r.type] || r.type;
+  var natureLabel = {eval:'Évaluation du besoin', visite:'Compte-rendu de visite / Essai', livraison:'Fiche de livraison'}[r.nature] || '';
+
+  function row(label, value) {
+    if (!value || value === '—') return '';
+    return '<tr><td style="padding:4px 8px;font-size:11px;color:#555;width:38%;vertical-align:top;border-bottom:1px solid #eee"><b>'+label+'</b></td><td style="padding:4px 8px;font-size:12px;color:#111;border-bottom:1px solid #eee">'+value+'</td></tr>';
+  }
+  function sec(title, color) {
+    return '<tr><td colspan="2" style="background:'+(color||'#1B3A6B')+';color:#fff;padding:6px 8px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">'+title+'</td></tr>';
+  }
+  function chipsVal(v) {
+    if (!v) return '—';
+    return Array.isArray(v) ? v.join(', ') : String(v);
+  }
+
+  var rows = '';
+
+  // Identification
+  rows += sec('Identification du rapport');
+  rows += row('N° Rapport', r.num);
+  rows += row('Date de visite', fdate(r.date));
+  rows += row('Technicien / Commercial', d.tech || r.tech || '—');
+  rows += row('Prescripteur', d.prescripteur || '');
+  rows += row('N° Ordonnance', d.n_ordo || '');
+  rows += row('Motif de la visite', d.motif_visite || '');
+
+  if (r.type !== 'collectivite') {
+    // Patient
+    rows += sec('Patient / Bénéficiaire', '#0E7C7B');
+    rows += row('Nom complet', pat);
+    rows += row('Date de naissance', d.ddn ? fdate(d.ddn) : '');
+    rows += row('Lieu de naissance', d.lieu_naissance || '');
+    rows += row('Adresse', [d.adresse, d.cp, d.ville].filter(Boolean).join(' ') || '');
+    rows += row('Téléphone domicile', d.tel_dom || '');
+    rows += row('Téléphone mobile', d.tel_mob || '');
+    rows += row('Email', d.email || '');
+    rows += row('Médecin traitant', d.medecin || '');
+    rows += row('Médecin spécialiste', d.specialiste || '');
+    rows += row('Contact / Aidant', d.aidant_nom ? d.aidant_nom + (d.aidant_tel ? ' — ' + d.aidant_tel : '') : '');
+
+    // Sécu
+    rows += sec('Couverture sociale', '#BA4A00');
+    rows += row('N° Sécurité Sociale', d.nss || '');
+    rows += row('Caisse SS (CPAM)', d.cpam || '');
+    rows += row('Taux remboursement SS', d.taux_ss || '');
+    rows += row('ALD', d.ald || '');
+    rows += row('Mutuelle', d.mutuelle || '');
+    rows += row('N° Adhérent mutuelle', d.n_mutuelle || '');
+    rows += row('Prise en charge mutuelle', d.pc_mutuelle || '');
+    rows += row('Dossier MDPH', d.mdph && d.mdph !== 'Non concerné' ? d.mdph : '');
+    rows += row('Montant PCH', d.montant_pch || '');
+    rows += row('Reste à charge estimé', d.rac || '');
+
+    // Pathologie
+    rows += sec('Pathologie & Besoins', '#5B3FA0');
+    rows += row('Diagnostic principal', d.pathologie || '');
+    rows += row('Étiologie', d.etiologie || '');
+    rows += row('GIR', d.gir || '');
+    rows += row('Comorbidités', chipsVal(d.comorbidites));
+    if (d.ms_droit || d.ms_gauche) {
+      rows += row('Membres supérieurs', 'Droit : '+(d.ms_droit||'—')+' / Gauche : '+(d.ms_gauche||'—'));
+    }
+    rows += row('Transferts', d.transferts || '');
+    rows += row('Autonomie déplacement', chipsVal(d.autonomie_dep));
+    rows += row('Poids', d.poids ? d.poids+' kg' : '');
+    rows += row('Aides humaines en place', d.aides_humaines || '');
+    rows += row('Matériel déjà en place', d.mat_existant || '');
+    rows += row('Observations cliniques', d.obs_clinique || '');
+  } else {
+    // Établissement
+    rows += sec('Établissement', '#0E7C7B');
+    rows += row('Nom', d.etab || r.etab || '');
+    rows += row('Type', d.type_etab || '');
+    rows += row('N° FINESS', d.finess || '');
+    rows += row('Adresse', d.adresse_etab || '');
+    rows += row('Téléphone', d.tel_etab || '');
+    rows += row('Email', d.email_etab || '');
+    rows += row('Responsable / Directeur', d.directeur || '');
+    rows += row('Référent achats', d.referent || '');
+    rows += row('Nb. lits / places', d.nb_lits || '');
+    rows += row('Nb. résidents', d.nb_residents || '');
+    rows += row('Convention tarifaire', d.convention || '');
+    rows += row('Budget matériel estimé', d.budget_mat || '');
+  }
+
+  // Environnement
+  rows += sec('Environnement', '#0E6670');
+  rows += row('Type de logement', d.logement || '');
+  rows += row('Étage', d.etage || '');
+  rows += row('Accès à l'étage', d.acces_etage || '');
+  rows += row('Largeur porte entrée', d.lp_entree ? d.lp_entree+' cm' : '');
+  rows += row('Largeur porte WC', d.lp_wc ? d.lp_wc+' cm' : '');
+  rows += row('Largeur porte chambre', d.lp_chambre ? d.lp_chambre+' cm' : '');
+  rows += row('Largeur porte SDB', d.lp_sdb ? d.lp_sdb+' cm' : '');
+  rows += row('Largeur couloir', d.larg_couloir ? d.larg_couloir+' cm' : '');
+  rows += row('Espace dégagé chambre', d.espace_chambre ? d.espace_chambre+' cm' : '');
+  rows += row('Contraintes identifiées', chipsVal(d.contraintes));
+  rows += row('Observations environnement', d.obs_env || '');
+
+  // Mesures (handi)
+  if (r.type === 'handi') {
+    var mesures = [];
+    var mesKeys2 = [['poids','Poids (kg)'],['taille','Taille (cm)'],['larg_bassin','Largeur bassin'],['larg_epaules','Largeur épaules'],['prof_assise','Prof. assise'],['haut_assise','Haut. assise'],['haut_dossier','Haut. dossier'],['long_jambe','Long. jambe'],['tour_thorax','Tour thorax'],['long_bras','Long. bras']];
+    mesKeys2.forEach(function(mk) { if (d[mk[0]]) mesures.push(mk[1]+' : '+d[mk[0]]+' cm'); });
+    if (mesures.length) {
+      rows += sec('Mesures anthropométriques', '#5B3FA0');
+      rows += row('Mesures', mesures.join(' | '));
+      rows += row('Usage prévu', chipsVal(d.usage_frm));
+      rows += row('Autonomie souhaitée', d.autonomie_souh ? d.autonomie_souh+' km/j' : '');
+    }
+  }
+
+  // Vie quotidienne (MAD)
+  if (r.type === 'mad') {
+    var hasVQ = d.mobilite || d.sdb || d.besoins_lit || d.resp;
+    if (hasVQ) {
+      rows += sec('Vie quotidienne & Besoins', '#BA4A00');
+      rows += row('Mobilité', chipsVal(d.mobilite));
+      rows += row('Salle de bain / Hygiène', chipsVal(d.sdb));
+      rows += row('Besoins lit', chipsVal(d.besoins_lit));
+      rows += row('Respiration & soins', chipsVal(d.resp));
+      rows += row('Autres besoins', d.autres_besoins || '');
+    }
+  }
+
+  // Matériel
+  var hasMat = d.marque || d.modele || d.ref_lpp || d.sous_type_frm || d.materiels_mad;
+  if (hasMat) {
+    rows += sec('Matériel — '+natureLabel, '#1A56DB');
+    if (r.type === 'handi') {
+      rows += row('Type d'acquisition', d.acquisition || '');
+      rows += row('Catégorie', d.cat_frm || '');
+      rows += row('Sous-type', chipsVal(d.sous_type_frm));
+    } else {
+      rows += row('Matériel sélectionné', chipsVal(d.materiels_mad));
+    }
+    rows += row('Marque / Fabricant', d.marque || '');
+    rows += row('Modèle exact', d.modele || '');
+    rows += row('Référence LPP', d.ref_lpp || '');
+    rows += row('N° de série', d.serie || '');
+    if (r.type === 'handi') {
+      rows += row('Largeur assise prescrite', d.mat_larg ? d.mat_larg+' cm' : '');
+      rows += row('Profondeur assise', d.mat_prof ? d.mat_prof+' cm' : '');
+      rows += row('Hauteur assise', d.mat_haut ? d.mat_haut+' cm' : '');
+      rows += row('Poids max supporté', d.poids_max ? d.poids_max+' kg' : '');
+      rows += row('Autonomie batterie', d.autonomie_bat ? d.autonomie_bat+' km' : '');
+      rows += row('Vitesse max', d.vitesse ? d.vitesse+' km/h' : '');
+      rows += row('Options / Accessoires', d.options || '');
+    }
+    rows += row('Prix HT', d.prix_ht || '');
+    rows += row('TVA', d.tva || '');
+    rows += row('Observations matériel', d.obs_mat || '');
+  }
+
+  // Essai
+  if (r.nature === 'visite') {
+    var starItems = r.type === 'handi'
+      ? ['Facilité de conduite/propulsion','Confort de l'assise','Stabilité','Franchissement d'obstacles','Maniabilité intérieur','Utilisation extérieur','Pliage / transport','Compatibilité domicile','Autonomie batterie (FRE)','Satisfaction patient']
+      : ['Facilité d'utilisation','Confort patient','Sécurité / stabilité','Adaptation domicile','Facilité aidant','Satisfaction globale'];
+    var essaiRows = '';
+    var stars = d._stars || {};
+    starItems.forEach(function(it, i) {
+      var val = parseInt(stars[i] || 0);
+      var starsStr = '';
+      for (var s=1; s<=5; s++) starsStr += (s<=val ? '★' : '☆');
+      essaiRows += '<tr><td style="padding:3px 8px;font-size:11px;border-bottom:1px solid #eee">'+it+'</td><td style="padding:3px 8px;font-size:13px;color:#E07B20;border-bottom:1px solid #eee">'+starsStr+' ('+val+'/5)</td></tr>';
+    });
+    if (essaiRows) {
+      rows += sec('Évaluation — Essai matériel', '#BA4A00');
+      rows += essaiRows;
+    }
+    rows += row('Durée d'essai', d.duree_essai || '');
+    rows += row('Lieu d'essai', d.lieu_essai || '');
+    rows += row('Commentaires essai', d.obs_essai || '');
+  }
+
+  // Commercial (collectivité)
+  if (r.type === 'collectivite') {
+    rows += sec('Analyse commerciale', '#5B3FA0');
+    rows += row('Groupement', d.groupement_oui || '');
+    rows += row('Nom groupement', d.nom_groupement || '');
+    rows += row('Concurrents identifiés', chipsVal(d.concurrents));
+    rows += row('Opportunités', chipsVal(d.opportunites));
+    rows += row('Potentiel estimé', d.potentiel_ca || '');
+    rows += row('Probabilité conversion', d.proba || '');
+    rows += row('Action prioritaire', d.action_prio || '');
+    rows += row('Notes commerciales', d.notes_commerciales || '');
+    if (d.mat_besoins) {
+      rows += sec('Besoins & Matériel', '#1A56DB');
+      rows += row('Matériels concernés', chipsVal(d.mat_besoins));
+      rows += row('Quantité estimée', d.qte_totale || '');
+      rows += row('Délai souhaité', d.delai_livraison || '');
+      rows += row('Détail des besoins', d.detail_besoins || '');
+    }
+  }
+
+  // Préconisation
+  rows += sec('Préconisation & Suites à donner', '#1A56DB');
+  rows += row('Matériel retenu / recommandé', d.mat_reco || '');
+  rows += row('Urgence', d.urgence || '');
+  rows += row('Actions à mener', chipsVal(d.actions));
+  rows += row('Synthèse & conclusions', d.synthese || '');
+  if (r.nature === 'livraison') rows += row('Vérifications effectuées', chipsVal(d.verif_liv));
+  rows += row('Prochain RDV / suivi prévu', d.prochaine_visite ? fdate(d.prochaine_visite) : '');
+
+  // Signatures
+  rows += sec('Signatures', '#1A7F4B');
+  rows += row('Technicien / Commercial', d.sig_tech_nom || '');
+  rows += row('Patient / Représentant légal', d.sig_pat_nom || '');
+  rows += row('Médecin / Prescripteur', d.sig_med_nom || '');
+
+  var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">' +
+    '<title>Rapport '+r.num+'</title>' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;margin:0;padding:0;color:#111}' +
+    '.header{background:#1B3A6B;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start}' +
+    '.header h1{font-size:18px;margin:0 0 4px}' +
+    '.header p{font-size:12px;margin:2px 0;opacity:.85}' +
+    '.header-right{text-align:right;font-size:12px}' +
+    '.header-right strong{font-size:15px;display:block}' +
+    'table{width:100%;border-collapse:collapse}' +
+    '@media print{body{font-size:11px}th,td{page-break-inside:avoid}}' +
+    '</style></head><body>' +
+    '<div class="header">' +
+    '<div><h1>MEDITEC PSDM</h1><p>Rapport de visite — '+typeLabel+'</p><p>'+natureLabel+'</p></div>' +
+    '<div class="header-right"><strong>'+r.num+'</strong><span>'+fdate(r.date)+'</span><br><span>Technicien : '+(d.tech||r.tech||'—')+'</span></div>' +
+    '</div>' +
+    '<table>'+rows+'</table>' +
+    '<p style="text-align:center;font-size:10px;color:#aaa;margin:12px">Meditec PSDM — Généré le '+new Date().toLocaleDateString('fr-FR')+'</p>' +
+    '</body></html>';
+
+  // Open print window
+  var win = window.open('', '_blank', 'width=800,height=1000');
+  if (!win) {
+    alert('Autorisez les popups pour ce site afin de générer le PDF.
+Ou utilisez : Partager → Imprimer depuis votre navigateur.');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  win.onload = function() {
+    setTimeout(function() { win.print(); }, 300);
+  };
+}
+
+// ═══════════════════════════════════════
+// MAIL
+// ═══════════════════════════════════════
+function openMailModal() { saveReport(); openM('m-mail'); }
+
+function doMail() {
+  var r = reports.find(function(x){ return x.id === cid; });
+  if (!r) return;
+  var d = r.data || {};
+  var to = document.getElementById('mail-to').value;
+  var cc = document.getElementById('mail-cc').value;
+  var msg = document.getElementById('mail-msg').value;
+  var pat = (d.nom && d.prenom ? d.nom+' '+d.prenom : r.patient||r.etab||'—');
+  var typeLabel = {handi:'Handicap FRM', mad:'MAD', collectivite:'Collectivité'}[r.type] || r.type;
+  var natureLabel = {eval:'Évaluation', visite:'Visite/Essai', livraison:'Livraison'}[r.nature] || '';
+
+  function chipsVal(v) {
+    if (!v) return '—';
+    return Array.isArray(v) ? v.join(', ') : String(v);
+  }
+  function line(label, value) {
+    if (!value || value === '—') return '';
+    return label + ' : ' + value + '
+';
+  }
+
+  var body = '';
+  if (msg) body += msg + '
+
+';
+  body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+';
+  body += 'RAPPORT DE VISITE MEDITEC PSDM
+';
+  body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+';
+  body += line('N° Rapport', r.num);
+  body += line('Date', fdate(r.date));
+  body += line('Type', typeLabel + ' — ' + natureLabel);
+  body += line('Technicien', d.tech || r.tech || '');
+  body += '
+── PATIENT / ÉTABLISSEMENT ──
+';
+  body += line('Nom', pat);
+  if (d.ddn) body += line('Date de naissance', fdate(d.ddn));
+  body += line('Adresse', [d.adresse, d.cp, d.ville].filter(Boolean).join(' ') || '');
+  body += line('Téléphone', d.tel_mob || d.tel_dom || '');
+  body += line('Médecin traitant', d.medecin || '');
+  body += '
+── COUVERTURE SOCIALE ──
+';
+  body += line('N° Sécurité Sociale', d.nss || '');
+  body += line('Mutuelle', d.mutuelle || '');
+  body += line('Taux remboursement', d.taux_ss || '');
+  body += line('Reste à charge estimé', d.rac || '');
+  body += '
+── PATHOLOGIE & BESOINS ──
+';
+  body += line('Diagnostic principal', d.pathologie || '');
+  body += line('GIR', d.gir || '');
+  body += line('Comorbidités', chipsVal(d.comorbidites));
+  if (r.type === 'handi') {
+    body += line('Autonomie déplacement', chipsVal(d.autonomie_dep));
+    var mesures2 = [];
+    [['poids','Poids'],['taille','Taille'],['larg_bassin','Bassin'],['prof_assise','Prof.assise'],['haut_assise','Haut.assise']].forEach(function(mk){ if(d[mk[0]]) mesures2.push(mk[1]+':'+d[mk[0]]+'cm'); });
+    if (mesures2.length) body += 'Mesures : ' + mesures2.join(' | ') + '
+';
+  }
+  body += '
+── ENVIRONNEMENT ──
+';
+  body += line('Type de logement', d.logement || '');
+  body += line('Étage', d.etage || '');
+  body += line('Largeur porte entrée', d.lp_entree ? d.lp_entree+' cm' : '');
+  body += line('Contraintes', chipsVal(d.contraintes));
+  if (d.mat_existant) body += line('Matériel déjà en place', d.mat_existant);
+  body += '
+── MATÉRIEL ──
+';
+  if (r.type === 'handi') {
+    body += line('Type d'acquisition', d.acquisition || '');
+    body += line('Catégorie', d.cat_frm || '');
+    body += line('Sous-type', chipsVal(d.sous_type_frm));
+  } else {
+    body += line('Matériel sélectionné', chipsVal(d.materiels_mad));
+  }
+  body += line('Marque', d.marque || '');
+  body += line('Modèle', d.modele || '');
+  body += line('Réf. LPP', d.ref_lpp || '');
+  body += line('N° de série', d.serie || '');
+  body += line('Prix HT', d.prix_ht || '');
+  if (d.options) body += line('Options', d.options);
+  body += '
+── PRÉCONISATION ──
+';
+  body += line('Matériel recommandé', d.mat_reco || '');
+  body += line('Urgence', d.urgence || '');
+  body += line('Actions à mener', chipsVal(d.actions));
+  if (d.synthese) body += '
+SYNTHÈSE :
+' + d.synthese + '
+';
+  body += '
+── SIGNATURES ──
+';
+  body += line('Technicien', d.sig_tech_nom || '');
+  body += line('Patient', d.sig_pat_nom || '');
+  body += '
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+';
+  body += 'Meditec PSDM — Généré le ' + new Date().toLocaleDateString('fr-FR') + '
+';
+
+  var subj = encodeURIComponent('Rapport Meditec ' + r.num + ' — ' + pat + ' — ' + fdate(r.date));
+  var bodyEnc = encodeURIComponent(body);
+  var mailto = 'mailto:' + to + '?subject=' + subj + '&body=' + bodyEnc;
+  if (cc) mailto += '&cc=' + encodeURIComponent(cc);
+  window.location.href = mailto;
+  closeM('m-mail');
+}
+
+// ═══════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('iban').classList.add('on');
+});
+function installPWA() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => { deferredInstall = null; document.getElementById('iban').classList.remove('on'); });
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+showList();
+renderList();
+</script>
+</body>
+</html>
